@@ -20,9 +20,11 @@
     const URL_DULIEU = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=DULIEU`;
     const URL_KQ = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=KQ_AOMEN`;
 
-    const DAN_LIST = ['马', '龙', '虎', '鼠', '狗', '猴'];
-    const SHUANG_LIST = ['蛇', '兔', '牛', '猪', '鸡', '羊'];
-    const ALL_ANIMALS = ['马', '龙', '虎', '鼠', '狗', '猴', '蛇', '兔', '牛', '猪', '鸡', '羊'];
+    // Khai báo tập hợp Lẻ và Chẵn chuẩn theo file mẫu
+    const LE = ["蛇", "兔", "牛", "猪", "鸡", "羊"];
+    const CHAN = ["龙", "虎", "鼠", "狗", "猴", "马"];
+    const ALL_ANIMALS = [...LE, ...CHAN];
+
     let duLieuMap = {};
 
     function fetchJSONP(url) {
@@ -35,72 +37,44 @@
             });
     }
 
-    function seededRandom(seed) {
-        let x = Math.sin(seed++) * 10000;
-        return x - Math.floor(x);
+    // Thuật toán xáo trộn mảng Shuffle (Fisher-Yates) theo file mẫu
+    function shuffle(array) {
+        let arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
     }
 
-    function generate6ShengXiao(kyNumber, historyList) {
-        let attempts = 0, seed = kyNumber * 12345;
-        let prevKy = historyList.length > 0 ? historyList[historyList.length - 1] : null;
+    // Hàm tạo 6 con giáp: 3 con bên Lẻ + 3 con bên Chẵn theo file mẫu
+    function generateData() {
+        const part1 = shuffle(LE).slice(0, 3);
+        const part2 = shuffle(CHAN).slice(0, 3);
+        return [...part1, ...part2];
+    }
 
-        while (attempts < 10000) {
-            attempts++; seed += 1;
-            let danShuffled = [...DAN_LIST].sort(() => seededRandom(seed) - 0.5);
-            let selectedDan = danShuffled.slice(0, 3);
-            let shuangShuffled = [...SHUANG_LIST].sort(() => seededRandom(seed + 1) - 0.5);
-            let selectedShuang = shuangShuffled.slice(0, 3);
-            let candidate = [...selectedDan, ...selectedShuang];
-
-            let isValid = true;
-
-            // 1. KIỂM TRA ĐIỀU KIỆN SO VỚI KỲ NGAY TRƯỚC ĐÓ (KỲ N-1)
-            if (prevKy && prevKy.length === 6) {
-                // Điều kiện A: Tuyệt đối KHÔNG trùng vị trí với kỳ liền trước
-                for (let i = 0; i < 6; i++) {
-                    if (candidate[i] === prevKy[i]) {
-                        isValid = false;
-                        break;
-                    }
-                }
-
-                if (isValid) {
-                    // Điều kiện B: Tối đa 2 con giáp trùng ở nhóm Đơn (3 con đầu)
-                    let sameDanCount = candidate.slice(0, 3).filter(a => prevKy.slice(0, 3).includes(a)).length;
-                    if (sameDanCount > 2) isValid = false;
-                }
-
-                if (isValid) {
-                    // Điều kiện C: Tối đa 2 con giáp trùng ở nhóm Đôi (3 con sau)
-                    let sameShuangCount = candidate.slice(3, 6).filter(a => prevKy.slice(3, 6).includes(a)).length;
-                    if (sameShuangCount > 2) isValid = false;
-                }
+    // Hàm kiểm tra vi phạm vị trí (So sánh với các kỳ trong lịch sử) theo file mẫu
+    function checkPositionViolation(newPick, historyArray) {
+        const lookback = historyArray.slice(-2); // Kiểm tra 2 kỳ liền trước
+        for (let prevPick of lookback) {
+            for (let i = 0; i < 6; i++) {
+                if (newPick[i] === prevPick[i]) return true;
             }
-
-            // 2. KIỂM TRA ĐIỀU KIỆN 4 KỲ LIÊN TIẾP
-            if (isValid && historyList.length > 0) {
-                let recent4 = historyList.slice(-4);
-                for (let hist of recent4) {
-                    if (hist && hist.length === 6) {
-                        let matchExactCount = 0;
-                        for (let i = 0; i < 6; i++) {
-                            if (candidate[i] === hist[i]) matchExactCount++;
-                        }
-                        // Không được phép trùng cả 6 vị trí chuẩn xác với bất kỳ kỳ nào trong 4 kỳ trước
-                        if (matchExactCount === 6) {
-                            isValid = false;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (isValid) return candidate;
         }
+        return false;
+    }
 
-        let fallbackDan = [...DAN_LIST].sort(() => seededRandom(seed + 99) - 0.5).slice(0, 3);
-        let fallbackShuang = [...SHUANG_LIST].sort(() => seededRandom(seed + 999) - 0.5).slice(0, 3);
-        return [...fallbackDan, ...fallbackShuang];
+    // Hàm sinh danh sách con giáp đảm bảo không trùng vị trí
+    function generate6ShengXiao(historyList) {
+        let newPick;
+        let safety = 0;
+        do {
+            newPick = generateData();
+            safety++;
+        } while (checkPositionViolation(newPick, historyList) && safety < 1000);
+        
+        return newPick;
     }
 
     function formatTwoDigits(val) {
@@ -161,12 +135,13 @@
                 }
             }
 
-            let history4 = [];
+            let historyLocal = [];
             let htmlOutputs = [];
 
             for (let item of parsedList) {
-                let predicted6 = generate6ShengXiao(item.kyNum, history4);
-                history4.push(predicted6);
+                let predicted6 = generate6ShengXiao(historyLocal);
+                historyLocal.push(predicted6);
+                if (historyLocal.length > 5) historyLocal.shift();
 
                 let isDone = item.numTe !== '' && item.numTe !== '00';
 
@@ -191,14 +166,16 @@
                 }
             }
 
+            // Kỳ dự đoán tiếp theo (Chưa mở)
             let maxKyNum = parsedList.length > 0 ? parsedList[parsedList.length - 1].kyNum : 0;
             let nextKyNum = maxKyNum + 1;
 
-            let nextPredicted6 = generate6ShengXiao(nextKyNum, history4);
+            let nextPredicted6 = generate6ShengXiao(historyLocal);
             let nextDan3 = nextPredicted6.slice(0, 3).join('');
             let nextShuang3 = nextPredicted6.slice(3, 6).join('');
             let nextFormatPredict = '【' + nextDan3 + '+' + nextShuang3 + '】';
 
+            // Dấu hỏi chấm tiếng Trung "？00中"
             let nextResStr = '？00中';
             let nextKyHtml = '<p><span style="font-size: 16px;">' + nextKyNum + '期:' + nextFormatPredict + '  开:</span><span class="res-box" style="font-size: 16px; color: rgb(255, 0, 0);">' + nextResStr + '</span></p>';
 
