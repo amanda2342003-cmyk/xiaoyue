@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dự Đoán 6 Con Giáp</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #fff; margin: 0; padding: 0; }
+        p { margin: 6px 0; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5; white-space: nowrap; }
+        .win-animal { background-color: #ffff00; color: #ff0000; font-weight: bold; }
+        .res-box { display: inline-block; width: 85px; text-align: left; }
+    </style>
+</head>
+<body>
+
+<div id="content-container">Đang kết nối dữ liệu...</div>
+
+<script>
+    const SHEET_ID = '19wtMwveTJ_eW09pp7ANQj1NkLNbHIA4kWLsoNAk5Xd8';
+    const URL_DULIEU = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=DULIEU`;
+    const URL_KQ = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=KQ_AOMEN`;
+
+    const DAN_LIST = ['马', '龙', '虎', '鼠', '狗', '猴'];
+    const SHUANG_LIST = ['蛇', '兔', '牛', '猪', '鸡', '羊'];
+    const ALL_ANIMALS = ['马', '龙', '虎', '鼠', '狗', '猴', '蛇', '兔', '牛', '猪', '鸡', '羊'];
+    let duLieuMap = {};
+
+    function fetchJSONP(url) {
+        return fetch(url)
+            .then(res => res.text())
+            .then(text => {
+                const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+                if (match && match[1]) return JSON.parse(match[1]);
+                throw new Error("Lỗi kết nối");
+            });
+    }
+
+    function seededRandom(seed) {
+        let x = Math.sin(seed++) * 10000;
+        return x - Math.floor(x);
+    }
+
+    function generate6ShengXiao(kyNumber, historyList) {
+        let attempts = 0, seed = kyNumber * 12345;
+        let prevKy = historyList.length > 0 ? historyList[historyList.length - 1] : null;
+
+        while (attempts < 10000) {
+            attempts++; seed += 1;
+            let danShuffled = [...DAN_LIST].sort(() => seededRandom(seed) - 0.5);
+            let selectedDan = danShuffled.slice(0, 3);
+            let shuangShuffled = [...SHUANG_LIST].sort(() => seededRandom(seed + 1) - 0.5);
+            let selectedShuang = shuangShuffled.slice(0, 3);
+            let candidate = [...selectedDan, ...selectedShuang];
+
+            let isValid = true;
+
+            // 1. KIỂM TRA ĐIỀU KIỆN SO VỚI KỲ NGAY TRƯỚC ĐÓ (KỲ N-1)
+            if (prevKy && prevKy.length === 6) {
+                // Điều kiện A: Tuyệt đối KHÔNG trùng vị trí với kỳ liền trước
+                for (let i = 0; i < 6; i++) {
+                    if (candidate[i] === prevKy[i]) {
+                        isValid = false;
+                        break;
+                    }
+                }
+
+                if (isValid) {
+                    // Điều kiện B: Tối đa 2 con giáp trùng ở nhóm Đơn (3 con đầu)
+                    let sameDanCount = candidate.slice(0, 3).filter(a => prevKy.slice(0, 3).includes(a)).length;
+                    if (sameDanCount > 2) isValid = false;
+                }
+
+                if (isValid) {
+                    // Điều kiện C: Tối đa 2 con giáp trùng ở nhóm Đôi (3 con sau)
+                    let sameShuangCount = candidate.slice(3, 6).filter(a => prevKy.slice(3, 6).includes(a)).length;
+                    if (sameShuangCount > 2) isValid = false;
+                }
+            }
+
+            // 2. KIỂM TRA ĐIỀU KIỆN 4 KỲ LIÊN TIẾP
+            if (isValid && historyList.length > 0) {
+                let recent4 = historyList.slice(-4);
+                for (let hist of recent4) {
+                    if (hist && hist.length === 6) {
+                        let matchExactCount = 0;
+                        for (let i = 0; i < 6; i++) {
+                            if (candidate[i] === hist[i]) matchExactCount++;
+                        }
+                        // Không được phép trùng cả 6 vị trí chuẩn xác với bất kỳ kỳ nào trong 4 kỳ trước
+                        if (matchExactCount === 6) {
+                            isValid = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (isValid) return candidate;
+        }
+
+        // Trường hợp fallback nếu không tìm được thì tạo xáo trộn ngẫu nhiên hoàn toàn
+        let fallbackDan = [...DAN_LIST].sort(() => seededRandom(seed + 99) - 0.5).slice(0, 3);
+        let fallbackShuang = [...SHUANG_LIST].sort(() => seededRandom(seed + 999) - 0.5).slice(0, 3);
+        return [...fallbackDan, ...fallbackShuang];
+    }
+
+    function formatTwoDigits(val) {
+        let num = parseInt(String(val).replace(/\D/g, ''), 10);
+        if (isNaN(num)) return '';
+        return String(num).padStart(2, '0');
+    }
+
+    function extractAnimal(rowCells) {
+        for (let cell of rowCells) {
+            if (!cell || cell.v === null) continue;
+            let str = String(cell.v);
+            for (let animal of ALL_ANIMALS) {
+                if (str.includes(animal)) return animal;
+            }
+        }
+        return '';
+    }
+
+    async function initPredict() {
+        try {
+            const rawRules = await fetchJSONP(URL_DULIEU);
+            if (rawRules.table && rawRules.table.rows) {
+                rawRules.table.rows.forEach(r => {
+                    if (r.c && r.c[0] && r.c[0].v !== null) {
+                        let formattedNum = formatTwoDigits(r.c[0].v);
+                        let animal = extractAnimal(r.c);
+                        if (formattedNum && animal) {
+                            duLieuMap[formattedNum] = animal;
+                        }
+                    }
+                });
+            }
+
+            const rawKQ = await fetchJSONP(URL_KQ);
+            const rows = rawKQ.table.rows;
+            let parsedList = [];
+            if (rows) {
+                for (let i = 0; i < rows.length; i++) {
+                    const r = rows[i].c;
+                    if (!r || !r[0] || r[0].v === null) continue;
+                    
+                    let kyRaw = String(r[0].v).trim();
+                    let kyOnlyNum = parseInt(kyRaw.replace(/\D/g, ''), 10) || 0;
+                    
+                    let numTeFormatted = '';
+                    if (r[7] && r[7].v !== null && String(r[7].v).trim() !== '' && String(r[7].v).trim() !== '00') {
+                        numTeFormatted = formatTwoDigits(r[7].v);
+                    }
+
+                    if (kyOnlyNum > 0) {
+                        parsedList.push({
+                            kyStr: kyOnlyNum + '',
+                            kyNum: kyOnlyNum,
+                            numTe: numTeFormatted
+                        });
+                    }
+                }
+            }
+
+            let history4 = [];
+            let htmlOutputs = [];
+
+            for (let item of parsedList) {
+                let predicted6 = generate6ShengXiao(item.kyNum, history4);
+                history4.push(predicted6);
+
+                let isDone = item.numTe !== '' && item.numTe !== '00';
+
+                if (isDone) {
+                    let shengXiaoWin = duLieuMap[item.numTe] || '';
+
+                    if (shengXiaoWin && predicted6.includes(shengXiaoWin)) {
+                        let formattedPredictArray = predicted6.map(animal => {
+                            if (animal === shengXiaoWin) {
+                                return `<span class="win-animal">${animal}</span>`;
+                            }
+                            return animal;
+                        });
+
+                        let dan3Str = formattedPredictArray.slice(0, 3).join('');
+                        let shuang3Str = formattedPredictArray.slice(3, 6).join('');
+                        let formatPredict = '【' + dan3Str + '+' + shuang3Str + '】';
+
+                        let resStr = shengXiaoWin + item.numTe + '中';
+                        htmlOutputs.push('<p><span style="font-size: 16px;">' + item.kyNum + '期:' + formatPredict + '  开:</span><span class="res-box" style="font-size: 16px; color: rgb(255, 0, 0);">' + resStr + '</span></p>');
+                    }
+                }
+            }
+
+            let maxKyNum = parsedList.length > 0 ? parsedList[parsedList.length - 1].kyNum : 0;
+            let nextKyNum = maxKyNum + 1;
+
+            let nextPredicted6 = generate6ShengXiao(nextKyNum, history4);
+            let nextDan3 = nextPredicted6.slice(0, 3).join('');
+            let nextShuang3 = nextPredicted6.slice(3, 6).join('');
+            let nextFormatPredict = '【' + nextDan3 + '+' + nextShuang3 + '】';
+
+            let nextResStr = '?00中';
+            let nextKyHtml = '<p><span style="font-size: 16px;">' + nextKyNum + '期:' + nextFormatPredict + '  开:</span><span class="res-box" style="font-size: 16px; color: rgb(255, 0, 0);">' + nextResStr + '</span></p>';
+
+            htmlOutputs.reverse();
+            document.getElementById('content-container').innerHTML = nextKyHtml + htmlOutputs.join('');
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('content-container').innerHTML = 'Lỗi kết nối dữ liệu!';
+        }
+    }
+    initPredict();
+</script>
+
+</body>
+</html>
