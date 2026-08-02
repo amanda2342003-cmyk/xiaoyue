@@ -98,7 +98,6 @@
             if (isValid) return candidate;
         }
 
-        // Trường hợp fallback nếu không tìm được thì tạo xáo trộn ngẫu nhiên hoàn toàn
         let fallbackDan = [...DAN_LIST].sort(() => seededRandom(seed + 99) - 0.5).slice(0, 3);
         let fallbackShuang = [...SHUANG_LIST].sort(() => seededRandom(seed + 999) - 0.5).slice(0, 3);
         return [...fallbackDan, ...fallbackShuang];
@@ -200,7 +199,7 @@
             let nextShuang3 = nextPredicted6.slice(3, 6).join('');
             let nextFormatPredict = '【' + nextDan3 + '+' + nextShuang3 + '】';
 
-            let nextResStr = '?00中';
+            let nextResStr = '？00中';
             let nextKyHtml = '<p><span style="font-size: 16px;">' + nextKyNum + '期:' + nextFormatPredict + '  开:</span><span class="res-box" style="font-size: 16px; color: rgb(255, 0, 0);">' + nextResStr + '</span></p>';
 
             htmlOutputs.reverse();
