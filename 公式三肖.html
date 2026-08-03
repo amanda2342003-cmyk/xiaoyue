@@ -223,7 +223,7 @@
 
             const rawKQ = await fetchJSONP(URL_KQ);
             const rows = rawKQ.table.rows;
-            let dataMap = {};
+            let parsedList = [];
             let maxKyNum = 0;
 
             if (rows) {
@@ -234,40 +234,36 @@
                     let kyRaw = String(r[0].v).trim();
                     let kyOnlyNum = parseInt(kyRaw.replace(/\D/g, ''), 10) || 0;
                     
-                    if (kyOnlyNum > maxKyNum) {
-                        maxKyNum = kyOnlyNum;
-                    }
-
                     let numTeFormatted = '';
                     if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '' && String(r[7].v).trim() !== '00') {
                         numTeFormatted = formatTwoDigits(r[7].v);
                     }
 
                     if (kyOnlyNum > 0) {
-                        dataMap[kyOnlyNum] = numTeFormatted;
+                        parsedList.push({
+                            kyNum: kyOnlyNum,
+                            numTe: numTeFormatted
+                        });
                     }
                 }
             }
 
-            if (maxKyNum === 0) {
-                document.getElementById('content-container').innerHTML = 'Không tìm thấy dữ liệu kỳ!';
-                return;
+            // Sắp xếp danh sách từ lớn xuống nhỏ để lấy chuẩn 20 kỳ gần nhất ở cuối bảng
+            parsedList.sort((a, b) => b.kyNum - a.kyNum);
+
+            if (parsedList.length > 0) {
+                maxKyNum = parsedList[0].kyNum; // Lấy kỳ lớn nhất thực tế từ sheet
             }
 
-            // Tạo danh sách đúng 20 kỳ liên tiếp tính ngược từ maxKyNum về trước
-            let targetKyList = [];
-            for (let k = maxKyNum - 19; k <= maxKyNum; k++) {
-                if (k > 0) {
-                    targetKyList.push(k);
-                }
-            }
+            let recentList = parsedList.slice(0, 20);
+            // Đảo ngược lại để hiển thị từ kỳ cũ đến kỳ mới
+            recentList.sort((a, b) => a.kyNum - b.kyNum);
 
             let historyOutputs = [];
 
-            for (let kyNum of targetKyList) {
-                let numTe = dataMap[kyNum] !== undefined ? dataMap[kyNum] : '';
-                let predicted6 = getPredict6ForKy(kyNum);
-                let isDone = numTe !== '' && numTe !== '00';
+            for (let item of recentList) {
+                let predicted6 = getPredict6ForKy(item.kyNum);
+                let isDone = item.numTe !== '' && item.numTe !== '00';
 
                 let formattedPredictArray = predicted6.map(animal => animal);
                 let chan3Str = formattedPredictArray.slice(0, 3).join('');
@@ -275,7 +271,7 @@
                 let formatPredict = '【' + chan3Str + '+' + le3Str + '】';
 
                 if (isDone) {
-                    let shengXiaoWin = duLieuMap[numTe] || '';
+                    let shengXiaoWin = duLieuMap[item.numTe] || '';
                     let isWin = shengXiaoWin && predicted6.includes(shengXiaoWin);
 
                     if (isWin) {
@@ -289,26 +285,28 @@
                         let l3 = formatPredictWin.slice(3, 6).join('');
                         formatPredict = '【' + c3 + '+' + l3 + '】';
 
-                        let resStr = shengXiaoWin + numTe + '中';
-                        historyOutputs.push('<p><span style="font-size: 16px;">' + String(kyNum) + '期:' + formatPredict + ' 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">' + resStr + '</span></p>');
+                        let resStr = shengXiaoWin + item.numTe + '中';
+                        historyOutputs.push('<p><span style="font-size: 16px;">' + String(item.kyNum) + '期:' + formatPredict + ' 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">' + resStr + '</span></p>');
                     } else {
-                        let resStr = (shengXiaoWin ? shengXiaoWin : '') + numTe + '错';
-                        historyOutputs.push('<p><span style="font-size: 16px;">' + String(kyNum) + '期:' + formatPredict + ' 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">' + resStr + '</span></p>');
+                        let resStr = (shengXiaoWin ? shengXiaoWin : '') + item.numTe + '错';
+                        historyOutputs.push('<p><span style="font-size: 16px;">' + String(item.kyNum) + '期:' + formatPredict + ' 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">' + resStr + '</span></p>');
                     }
                 } else {
                     let resStr = '？00';
-                    historyOutputs.push('<p><span style="font-size: 16px;">' + String(kyNum) + '期:' + formatPredict + ' 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">' + resStr + '</span><span style="font-size: 16px; color: rgb(255, 0, 0);">中</span></p>');
+                    historyOutputs.push('<p><span style="font-size: 16px;">' + String(item.kyNum) + '期:' + formatPredict + ' 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">' + resStr + '</span><span style="font-size: 16px; color: rgb(255, 0, 0);">中</span></p>');
                 }
             }
 
-            // Tự động thêm kỳ dự đoán tiếp theo = maxKyNum + 1
-            let nextKyNum = maxKyNum + 1;
-            let predicted6 = getPredict6ForKy(nextKyNum);
-            let chan3Str = predicted6.slice(0, 3).join('');
-            let le3Str = predicted6.slice(3, 6).join('');
-            let formatPredict = '【' + chan3Str + '+' + le3Str + '】';
-            let resStr = '？00';
-            historyOutputs.push('<p><span style="font-size: 16px;">' + String(nextKyNum) + '期:' + formatPredict + ' 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">' + resStr + '</span><span style="font-size: 16px; color: rgb(255, 0, 0);">中</span></p>');
+            // Tự động thêm kỳ dự đoán tiếp theo dựa vào maxKyNum thực tế
+            if (maxKyNum > 0) {
+                let nextKyNum = maxKyNum + 1;
+                let predicted6 = getPredict6ForKy(nextKyNum);
+                let chan3Str = predicted6.slice(0, 3).join('');
+                let le3Str = predicted6.slice(3, 6).join('');
+                let formatPredict = '【' + chan3Str + '+' + le3Str + '】';
+                let resStr = '？00';
+                historyOutputs.push('<p><span style="font-size: 16px;">' + String(nextKyNum) + '期:' + formatPredict + ' 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">' + resStr + '</span><span style="font-size: 16px; color: rgb(255, 0, 0);">中</span></p>');
+            }
 
             document.getElementById('content-container').innerHTML = historyOutputs.join('');
 
