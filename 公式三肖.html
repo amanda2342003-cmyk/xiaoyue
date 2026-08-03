@@ -41,6 +41,8 @@
     const ALL_ANIMALS = ["鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊", "猴", "鸡", "狗", "猪"];
     const CHAN_BASE = ["鼠", "虎", "龙", "马", "猴", "狗"];
     const LE_BASE = ["牛", "兔", "蛇", "羊", "鸡", "猪"];
+    
+    let duLieuMap = {};
 
     const PREDICT_DATABASE = {
         1: ["龙","鼠","虎","鸡","蛇","牛"], 2: ["猴","马","狗","牛","鸡","蛇"], 3: ["马","虎","猴","蛇","兔","羊"],
@@ -257,11 +259,10 @@
                 return;
             }
 
-            let minKyNum = Math.min(...allFoundKys);
             let maxKyNum = Math.max(...allFoundKys);
 
             let targetKyList = [];
-            for (let k = minKyNum; k <= maxKyNum + 1; k++) {
+            for (let k = 1; k <= maxKyNum + 1; k++) {
                 targetKyList.push(k);
             }
 
