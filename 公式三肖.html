@@ -274,9 +274,6 @@
                         historyOutputs.push('<p><span style="font-size: 16px;">' + String(item.kyNum) + '期:' + formatPredict + ' 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">' + resStr + '</span></p>');
                     } else {
                         consecutiveMisses++;
-                        if (consecutiveMisses >= 3) {
-                            historyOutputs = [];
-                        }
                     }
                 }
             }
@@ -292,6 +289,8 @@
             let htmlNextKy = '<p><span style="font-size: 16px;">' + String(nextKyNum) + '期:' + formatPredictNext + ' 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">\uFF1F00</span><span style="font-size: 16px; color: rgb(255, 0, 0);">中</span></p>';
 
             let finalOutputs = [];
+            
+            // Ép buộc kiểm tra: Nếu số lần trượt liên tiếp đạt từ 3 trở lên, hoặc bạn muốn chắc chắn hiển thị, xóa lịch sử và dùng kì mặc định
             if (consecutiveMisses >= 3) {
                 let nextKyNum2 = nextKyNum + 1;
                 let nextKyNum3 = nextKyNum + 2;
@@ -299,13 +298,12 @@
                 let defaultHtml2 = '<p><span style="font-size: 16px;">' + String(nextKyNum2) + '期:【發發發+發發發】 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">\uFF1F00</span><span style="font-size: 16px; color: rgb(255, 0, 0);">中</span></p>';
                 let defaultHtml3 = '<p><span style="font-size: 16px;">' + String(nextKyNum3) + '期:【發發發+發發發】 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">\uFF1F00</span><span style="font-size: 16px; color: rgb(255, 0, 0);">中</span></p>';
 
-                // Đảm bảo thứ tự từ trên xuống dưới tăng dần: kì mới -> kì mặc định 1 -> kì mặc định 2
                 finalOutputs.push(htmlNextKy);
                 finalOutputs.push(defaultHtml2);
                 finalOutputs.push(defaultHtml3);
             } else {
                 historyOutputs.push(htmlNextKy);
-                finalOutputs = historyOutputs; // historyOutputs đã chuẩn thứ tự tăng dần từ dưới lên hoặc tuỳ logic, giữ nguyên mảng cũ
+                finalOutputs = historyOutputs;
             }
 
             document.getElementById('content-container').innerHTML = finalOutputs.join('');
