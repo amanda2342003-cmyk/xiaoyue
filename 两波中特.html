@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳门六合彩【两波中特】坚持不懈！</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 5px;
+            background-color: #fff;
+            color: #000;
+        }
+        .content {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .win-animal {
+            color: #FF0000;
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+
+<div id="content-container" class="content"></div>
+
+<script>
+    const SPREADSHEET_ID = '19wtMwveTJ_eW09pp7ANQj1NkLNbHIA4kWLsoNAk5Xd8';
+    const SHEET_NAME_KQ = 'KQ_AOMEN';
+    const SHEET_NAME_DULIEU = 'DULIEU';
+
+    const URL_KQ = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_KQ}`;
+    const URL_DULIEU = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_DULIEU}`;
+
+    const COLOR_POOL = ["蓝波", "绿波", "红波"];
+    
+    const RED_NUMBERS = ["01", "02", "07", "08", "12", "13", "18", "19", "23", "24", "29", "30", "34", "35", "40", "45", "46"];
+    const BLUE_NUMBERS = ["03", "04", "09", "10", "14", "15", "20", "25", "26", "31", "36", "37", "41", "42", "47", "48"];
+    const GREEN_NUMBERS = ["05", "06", "11", "16", "17", "21", "22", "27", "28", "32", "33", "38", "39", "43", "44", "49"];
+
+    let duLieuMap = {};
+
+    function fetchJSONP(url) {
+        return fetch(url)
+            .then(res => res.text())
+            .then(text => {
+                const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+                if (match && match[1]) return JSON.parse(match[1]);
+                throw new Error(" ");
+            });
+    }
+
+    function getPredictColorsForKy(kyNum) {
+        let idx1 = (kyNum * 2) % COLOR_POOL.length;
+        let idx2 = (kyNum * 3 + 1) % COLOR_POOL.length;
+        if (idx1 === idx2) {
+            idx2 = (idx1 + 1) % COLOR_POOL.length;
+        }
+        return [COLOR_POOL[idx1], COLOR_POOL[idx2]];
+    }
+
+    function getColorByNum(numStr) {
+        if (RED_NUMBERS.includes(numStr)) return "红波";
+        if (BLUE_NUMBERS.includes(numStr)) return "蓝波";
+        if (GREEN_NUMBERS.includes(numStr)) return "绿波";
+        return "";
+    }
+
+    function formatTwoDigits(val) {
+        let num = parseInt(String(val).replace(/\D/g, ''), 10);
+        if (isNaN(num)) return '';
+        return String(num).padStart(2, '0');
+    }
+
+    async function initPredict() {
+        try {
+            const rawRules = await fetchJSONP(URL_DULIEU);
+            if (rawRules.table && rawRules.table.rows) {
+                rawRules.table.rows.forEach(r => {
+                    if (r.c && r.c[0] && r.c[0].v !== null && r.c[0].v !== undefined) {
+                        let formattedNum = formatTwoDigits(r.c[0].v);
+                        let animal = (r.c[1] && r.c[1].v !== null && r.c[1].v !== undefined) ? String(r.c[1].v).trim() : '';
+                        if (formattedNum && animal) {
+                            duLieuMap[formattedNum] = animal;
+                        }
+                    }
+                });
+            }
+
+            const rawKQ = await fetchJSONP(URL_KQ);
+            const rows = rawKQ.table.rows;
+            let parsedList = [];
+            let maxKyNum = 0;
+
+            if (rows) {
+                for (let i = 0; i < rows.length; i++) {
+                    const r = rows[i].c;
+                    if (!r || !r[0] || r[0].v === null || r[0].v === undefined) continue;
+                    
+                    let kyRaw = String(r[0].v).trim();
+                    let kyOnlyNum = parseInt(kyRaw.replace(/\D/g, ''), 10) || 0;
+                    
+                    let numTeFormatted = '';
+                    if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '' && String(r[7].v).trim() !== '00') {
+                        numTeFormatted = formatTwoDigits(r[7].v);
+                    }
+
+                    if (kyOnlyNum > 0) {
+                        parsedList.push({
+                            kyNum: kyOnlyNum,
+                            numTe: numTeFormatted
+                        });
+                        if (kyOnlyNum > maxKyNum) {
+                            maxKyNum = kyOnlyNum;
+                        }
+                    }
+                }
+            }
+
+            let historyOutputs = [];
+            let consecutiveMisses = 0;
+
+            let limitRange = Math.min(parsedList.length, 365);
+            let startIndex = parsedList.length - limitRange;
+
+            for (let i = startIndex; i < parsedList.length; i++) {
+                let item = parsedList[i];
+                let predictedColors = getPredictColorsForKy(item.kyNum);
+                let isDone = item.numTe !== '' && item.numTe !== '00';
+
+                if (isDone) {
+                    let shengXiaoWin = duLieuMap[item.numTe] || '';
+                    let actualColor = getColorByNum(item.numTe);
+                    let isWin = actualColor && predictedColors.includes(actualColor);
+
+                    if (isWin) {
+                        consecutiveMisses = 0;
+                        let formatPredict = '【' + predictedColors.join('') + '】';
+                        let formattedPredictHtml = formatPredict.replace(actualColor, `<span style="color:#FF0000; background-color:yellow;">${actualColor}</span>`);
+
+                        let resStr = shengXiaoWin + item.numTe + '中';
+                        let kyStr = String(item.kyNum).padStart(3, '0');
+                        historyOutputs.push(`<p style="margin-bottom:20px;font-family:-apple-system-font,'Helvetica Neue',sans-serif;font-size:18px;"><span style="color:#008000;">${kyStr}期:▽2波中特▽</span><span style="color:rgb(51,51,51);">${formattedPredictHtml}</span><span style="color:rgb(255,0,0);">开:${resStr}</span></p>`);
+                    } else {
+                        consecutiveMisses++;
+                        if (consecutiveMisses >= 3) {
+                            historyOutputs = []; // Xóa bỏ toàn bộ các kỳ đã trúng trước đó khi sai 3 kỳ liên tiếp
+                        }
+                    }
+                }
+            }
+
+            let nextKyNum = maxKyNum + 1;
+            let kyStrNext = String(nextKyNum).padStart(3, '0');
+            let predictNext = getPredictColorsForKy(nextKyNum);
+            let formatPredictNext = '【' + predictNext.join('') + '】';
+
+            let htmlNextKy = `<p style="margin-bottom:20px;font-family:-apple-system-font,'Helvetica Neue',sans-serif;font-size:18px;"><span style="color:#008000;">${kyStrNext}期:▽2波中特▽</span><span style="color:rgb(51,51,51);">${formatPredictNext}</span><span style="color:rgb(255,0,0);">开:？00中</span></p>`;
+
+            let finalOutputs = [];
+            
+            if (consecutiveMisses >= 3) {
+                let nextKyNum2 = nextKyNum + 1;
+                let nextKyNum3 = nextKyNum + 2;
+                let kyStr2 = String(nextKyNum2).padStart(3, '0');
+                let kyStr3 = String(nextKyNum3).padStart(3, '0');
+
+                // Hiển thị 2 kỳ phía sau với nội dung thay bằng 【發發發發】
+                let defaultHtml2 = `<p style="margin-bottom:20px;font-family:-apple-system-font,'Helvetica Neue',sans-serif;font-size:18px;"><span style="color:#008000;">${kyStr2}期:▽2波中特▽</span><span style="color:rgb(51,51,51);">【發發發發】</span><span style="color:rgb(255,0,0);">开:？00中</span></p>`;
+                let defaultHtml3 = `<p style="margin-bottom:20px;font-family:-apple-system-font,'Helvetica Neue',sans-serif;font-size:18px;"><span style="color:#008000;">${kyStr3}期:▽2波中特▽</span><span style="color:rgb(51,51,51);">【發發發發】</span><span style="color:rgb(255,0,0);">开:？00中</span></p>`;
+
+                finalOutputs.push(defaultHtml3);
+                finalOutputs.push(defaultHtml2);
+                finalOutputs.push(htmlNextKy);
+            } else {
+                historyOutputs.reverse();
+                finalOutputs = [htmlNextKy, ...historyOutputs];
+            }
+
+            document.getElementById('content-container').innerHTML = finalOutputs.join('');
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('content-container').innerHTML = ' ';
+        }
+    }
+    initPredict();
+</script>
+
+</body>
+</html>
