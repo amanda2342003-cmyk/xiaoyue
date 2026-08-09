@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳门六合彩『公式五行』横扫黑庄！</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 5px;
+            background-color: #fff;
+            color: #000;
+        }
+        .content {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .win-animal {
+            color: #FF0000;
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+
+<div id="content-container" class="content"></div>
+
+<script>
+    const SPREADSHEET_ID = '19wtMwveTJ_eW09pp7ANQj1NkLNbHIA4kWLsoNAk5Xd8';
+    const SHEET_NAME_KQ = 'KQ_AOMEN';
+    const SHEET_NAME_DULIEU = 'DULIEU';
+
+    const URL_KQ = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_KQ}`;
+    const URL_DULIEU = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_DULIEU}`;
+
+    let duLieuMap = {};
+
+    const WUXING_MAP = {
+        "金": ["04", "05", "12", "13", "26", "27", "34", "35", "42", "43"],
+        "木": ["08", "09", "16", "17", "24", "25", "38", "39", "46", "47"],
+        "水": ["01", "14", "15", "22", "23", "30", "31", "44", "45"],
+        "火": ["02", "03", "10", "11", "18", "19", "32", "33", "40", "41", "48", "49"],
+        "土": ["06", "07", "20", "21", "28", "29", "36", "37"]
+    };
+
+    const STATIC_PREDICTIONS = {
+        1: "木金土", 2: "金水土", 3: "木水火", 4: "金木土", 5: "水火土", 6: "金木水", 7: "木火土", 8: "金水火", 9: "木水土", 10: "金木火",
+        11: "水木土", 12: "金火土", 13: "木水金", 14: "金木水", 15: "水火木", 16: "金土水", 17: "木火金", 18: "金水土", 19: "木水火", 20: "金木土",
+        21: "水火土", 22: "金木水", 23: "木火土", 24: "金水火", 25: "木水土", 26: "金木火", 27: "水木土", 28: "金火土", 29: "木水金", 30: "金木水",
+        31: "水火木", 32: "金土水", 33: "木火金", 34: "金水土", 35: "木水火", 36: "金木土", 37: "水火土", 38: "金木水", 39: "木火土", 40: "金水火",
+        41: "木水土", 42: "金木火", 43: "水木土", 44: "金火土", 45: "木水金", 46: "金木水", 47: "水火木", 48: "金土水", 49: "木火金", 50: "金水土",
+        51: "木水火", 52: "金木土", 53: "水火土", 54: "金木水", 55: "木火土", 56: "金水火", 57: "木水土", 58: "金木火", 59: "水木土", 60: "金火土",
+        61: "木水金", 62: "金木水", 63: "水火木", 64: "金土水", 65: "木火金", 66: "金水土", 67: "木水火", 68: "金木土", 69: "水火土", 70: "金木水",
+        71: "木火土", 72: "金水火", 73: "木水土", 74: "金木火", 75: "水木土", 76: "金火土", 77: "木水金", 78: "金木水", 79: "水火木", 80: "金土水",
+        81: "木火金", 82: "金水土", 83: "木水火", 84: "金木土", 85: "水火土", 86: "金木水", 87: "木火土", 88: "金水火", 89: "木水土", 90: "金木火",
+        91: "水木土", 92: "金火土", 93: "木水金", 94: "金木水", 95: "水火木", 96: "金土水", 97: "木火金", 98: "金水土", 99: "木水火", 100: "金木土",
+        101: "水火土", 102: "金木水", 103: "木火土", 104: "金水火", 105: "木水土", 106: "金木火", 107: "水木土", 108: "金火土", 109: "木水金", 110: "金木水",
+        111: "水火木", 112: "金土水", 113: "木火金", 114: "金水土", 115: "木水火", 116: "金木土", 117: "水火土", 118: "金木水", 119: "木火土", 120: "金水火",
+        121: "木水土", 122: "金木火", 123: "水木土", 124: "金火土", 125: "木水金", 126: "金木水", 127: "水火木", 128: "金土水", 129: "木火金", 130: "金水土",
+        131: "木水火", 132: "金木土", 133: "水火土", 134: "金木水", 135: "木火土", 136: "金水火", 137: "木水土", 138: "金木火", 139: "水木土", 140: "金火土",
+        141: "木水金", 142: "金木水", 143: "水火木", 144: "金土水", 145: "木火金", 146: "金水土", 147: "木水火", 148: "金木土", 149: "水火土", 150: "金木水",
+        151: "木火土", 152: "金水火", 153: "木水土", 154: "金木火", 155: "水木土", 156: "金火土", 157: "木水金", 158: "金木水", 159: "水火木", 160: "金土水",
+        161: "木火金", 162: "金水土", 163: "木水火", 164: "金木土", 165: "水火土", 166: "金木水", 167: "木火土", 168: "金水火", 169: "木水土", 170: "金木火",
+        171: "水木土", 172: "金火土", 173: "木水金", 174: "金木水", 175: "水火木", 176: "金土水", 177: "木火金", 178: "金水土", 179: "木水火", 180: "金木土",
+        181: "水火土", 182: "金木水", 183: "木火土", 184: "金水火", 185: "木水土", 186: "金木火", 187: "水木土", 188: "金火土", 189: "木水金", 190: "金木水",
+        191: "水火木", 192: "金土水", 193: "木火金", 194: "金水土", 195: "木水火", 196: "金木土", 197: "水火土", 198: "金木水", 199: "木火土", 200: "金水火",
+        201: "木水土", 202: "金木火", 203: "水木土", 204: "金火土", 205: "木水金", 206: "金木水", 207: "水火木", 208: "金土水", 209: "木火金", 210: "金水土",
+        211: "木水火", 212: "金木土", 213: "水火土", 214: "金木水", 215: "木火土", 216: "金水火", 217: "木水土", 218: "金木火", 219: "水木土", 220: "金火土",
+        221: "木水金", 222: "金木水", 223: "水火木", 224: "金土水", 225: "木火金", 226: "金水土", 227: "木水火", 228: "金木土", 229: "水火土", 230: "金木水",
+        231: "木火土", 232: "金水火", 233: "木水土", 234: "金木火", 235: "水木土", 236: "金火土", 237: "木水金", 238: "金木水", 239: "水火木", 240: "金土水",
+        241: "木火金", 242: "金水土", 243: "木水火", 244: "金木土", 245: "水火土", 246: "金木水", 247: "木火土", 248: "金水火", 249: "木水土", 250: "金木火",
+        251: "水木土", 252: "金火土", 253: "木水金", 254: "金木水", 255: "水火木", 256: "金土水", 257: "木火金", 258: "金水土", 259: "木水火", 260: "金木土",
+        261: "水火土", 262: "金木水", 263: "木火土", 264: "金水火", 265: "木水土", 266: "金木火", 267: "水木土", 268: "金火土", 269: "木水金", 270: "金木水",
+        271: "水火木", 272: "金土水", 273: "木火金", 274: "金水土", 275: "木水火", 276: "金木土", 277: "水火土", 278: "金木水", 279: "木火土", 280: "金水火",
+        281: "木水土", 282: "金木火", 283: "水木土", 284: "金火土", 285: "木水金", 286: "金木水", 287: "水火木", 288: "金土水", 289: "木火金", 290: "金水土",
+        291: "木水火", 292: "金木土", 293: "水火土", 294: "金木水", 295: "木火土", 296: "金水火", 297: "木水土", 298: "金木火", 299: "水木土", 300: "金火土",
+        301: "木水金", 302: "金木水", 303: "水火木", 304: "金土水", 305: "木火金", 306: "金水土", 307: "木水火", 308: "金木土", 309: "水火土", 310: "金木水",
+        311: "木火土", 312: "金水火", 313: "木水土", 314: "金木火", 315: "水木土", 316: "金火土", 317: "木水金", 318: "金木水", 319: "水火木", 320: "金土水",
+        321: "木火金", 322: "金水土", 323: "木水火", 324: "金木土", 325: "水火土", 326: "金木水", 327: "木火土", 328: "金水火", 329: "木水土", 330: "金木火",
+        331: "水木土", 332: "金火土", 333: "木水金", 334: "金木水", 335: "水火木", 336: "金土水", 337: "木火金", 338: "金水土", 339: "木水火", 340: "金木土",
+        341: "水火土", 342: "金木水", 343: "木火土", 344: "金水火", 345: "木水土", 346: "金木火", 347: "水木土", 348: "金火土", 349: "木水金", 350: "金木水",
+        351: "水火木", 352: "金土水", 353: "木火金", 354: "金水土", 355: "木水火", 356: "金木土", 357: "水火土", 358: "金木水", 359: "木火土", 360: "金水火",
+        361: "木水土", 362: "金木火", 363: "水木土", 364: "金火土", 365: "木水金", 366: "木水金"
+    };
+
+    function fetchJSONP(url) {
+        return fetch(url)
+            .then(res => res.text())
+            .then(text => {
+                const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+                if (match && match[1]) return JSON.parse(match[1]);
+                throw new Error(" ");
+            });
+    }
+
+    function getPredictWuXingForKy(kyNum) {
+        if (STATIC_PREDICTIONS[kyNum]) {
+            return STATIC_PREDICTIONS[kyNum];
+        }
+        const options = ["金", "木", "水", "火", "土"];
+        let idx = (kyNum - 1) % 5;
+        let p1 = options[idx];
+        let p2 = options[(idx + 1) % 5];
+        let p3 = options[(idx + 2) % 5];
+        return p1 + p2 + p3;
+    }
+
+    function getWuXingByNum(numStr) {
+        for (let key in WUXING_MAP) {
+            if (WUXING_MAP[key].includes(numStr)) {
+                return key;
+            }
+        }
+        return "";
+    }
+
+    function formatTwoDigits(val) {
+        let num = parseInt(String(val).replace(/\D/g, ''), 10);
+        if (isNaN(num)) return '';
+        return String(num).padStart(2, '0');
+    }
+
+    async function initPredict() {
+        try {
+            const rawRules = await fetchJSONP(URL_DULIEU);
+            if (rawRules.table && rawRules.table.rows) {
+                rawRules.table.rows.forEach(r => {
+                    if (r.c && r.c[0] && r.c[0].v !== null && r.c[0].v !== undefined) {
+                        let formattedNum = formatTwoDigits(r.c[0].v);
+                        let animal = (r.c[1] && r.c[1].v !== null && r.c[1].v !== undefined) ? String(r.c[1].v).trim() : '';
+                        if (formattedNum && animal) {
+                            duLieuMap[formattedNum] = animal;
+                        }
+                    }
+                });
+            }
+
+            const rawKQ = await fetchJSONP(URL_KQ);
+            const rows = rawKQ.table.rows;
+            let parsedList = [];
+            let maxKyNum = 0;
+
+            if (rows) {
+                for (let i = 0; i < rows.length; i++) {
+                    const r = rows[i].c;
+                    if (!r || !r[0] || r[0].v === null || r[0].v === undefined) continue;
+                    
+                    let kyRaw = String(r[0].v).trim();
+                    let kyOnlyNum = parseInt(kyRaw.replace(/\D/g, ''), 10) || 0;
+                    
+                    let numTeFormatted = '';
+                    if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '' && String(r[7].v).trim() !== '00') {
+                        numTeFormatted = formatTwoDigits(r[7].v);
+                    }
+
+                    if (kyOnlyNum > 0) {
+                        parsedList.push({
+                            kyNum: kyOnlyNum,
+                            numTe: numTeFormatted
+                        });
+                        if (kyOnlyNum > maxKyNum) {
+                            maxKyNum = kyOnlyNum;
+                        }
+                    }
+                }
+            }
+
+            let doneList = [];
+            let limitRange = Math.min(parsedList.length, 365);
+            let startIndex = parsedList.length - limitRange;
+
+            for (let i = startIndex; i < parsedList.length; i++) {
+                let item = parsedList[i];
+                let isDone = item.numTe !== '' && item.numTe !== '00';
+                if (isDone) {
+                    doneList.push(item);
+                }
+            }
+
+            let evaluatedDoneList = [];
+            for (let i = 0; i < doneList.length; i++) {
+                let item = doneList[i];
+                let predicted = getPredictWuXingForKy(item.kyNum);
+                let actualWuXing = getWuXingByNum(item.numTe);
+                let isWin = actualWuXing !== "" && predicted.includes(actualWuXing);
+                evaluatedDoneList.push({ item, isWin });
+            }
+
+            let checkLatestMisses = 0;
+            for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                if (!evaluatedDoneList[i].isWin) {
+                    checkLatestMisses++;
+                } else {
+                    break;
+                }
+            }
+
+            let cutoffIndex = evaluatedDoneList.length;
+            if (checkLatestMisses < 3) {
+                let consecutiveMisses = 0;
+                for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                    if (!evaluatedDoneList[i].isWin) {
+                        consecutiveMisses++;
+                        if (consecutiveMisses >= 3) {
+                            cutoffIndex = i + 1;
+                            break;
+                        }
+                    } else {
+                        consecutiveMisses = 0;
+                    }
+                }
+            }
+
+            let nextKyNum = maxKyNum + 1;
+            let predictNext = getPredictWuXingForKy(nextKyNum);
+            let kyStrNext = String(nextKyNum).padStart(3, '0');
+
+            let htmlNextKy = `<p>\n\t<span style="font-size: 18px;">${kyStrNext}期：公式五行【<span style="color: rgb(255, 0, 0);">${predictNext}</span>】开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">？00</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span>\n</p>`;
+
+            let historyOutputs = [];
+            if (checkLatestMisses < 3) {
+                for (let i = cutoffIndex; i < doneList.length; i++) {
+                    let item = doneList[i];
+                    let predicted = getPredictWuXingForKy(item.kyNum);
+                    let shengXiaoWin = duLieuMap[item.numTe] || '';
+                    let actualWuXing = getWuXingByNum(item.numTe);
+                    let isWin = actualWuXing !== "" && predicted.includes(actualWuXing);
+
+                    if (isWin) {
+                        let resStrWin = shengXiaoWin + item.numTe;
+                        let kyStr = String(item.kyNum).padStart(3, '0');
+                        
+                        let formattedPredict = "";
+                        for (let char of predicted) {
+                            if (char === actualWuXing) {
+                                formattedPredict += `<span style="background-color: yellow; color: rgb(255, 0, 0);">${char}</span>`;
+                            } else {
+                                formattedPredict += char;
+                            }
+                        }
+
+                        historyOutputs.push(`<p>\n\t<span style="font-size: 18px;">${kyStr}期：公式五行【<span style="color: rgb(255, 0, 0);">${formattedPredict}</span>】开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">${resStrWin}</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span>\n</p>`);
+                    }
+                }
+            }
+            historyOutputs.reverse();
+
+            let finalOutputs = [htmlNextKy, ...historyOutputs];
+
+            let currentCount = finalOutputs.length;
+            if (currentCount === 1) {
+                let kyStr1 = String(nextKyNum + 1).padStart(3, '0');
+                let kyStr2 = String(nextKyNum + 2).padStart(3, '0');
+                let defaultHtml1 = `<p>\n\t<span style="font-size: 18px;">${kyStr1}期：公式五行【<span style="color: rgb(255, 0, 0);">發發發</span>】开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">？00</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span>\n</p>`;
+                let defaultHtml2 = `<p>\n\t<span style="font-size: 18px;">${kyStr2}期：公式五行【<span style="color: rgb(255, 0, 0);">發發發</span>】开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">？00</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span>\n</p>`;
+                finalOutputs.unshift(defaultHtml1);
+                finalOutputs.unshift(defaultHtml2);
+            } else if (currentCount === 2) {
+                let kyStrExtra = String(nextKyNum + 1).padStart(3, '0');
+                let defaultHtmlExtra = `<p>\n\t<span style="font-size: 18px;">${kyStrExtra}期：公式五行【<span style="color: rgb(255, 0, 0);">發發發</span>】开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">？00</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span>\n</p>`;
+                finalOutputs.unshift(defaultHtmlExtra);
+            }
+
+            document.getElementById('content-container').innerHTML = finalOutputs.join('');
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('content-container').innerHTML = ' ';
+        }
+    }
+    initPredict();
+</script>
+
+</body>
+</html>
