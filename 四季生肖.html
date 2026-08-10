@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳门六合彩『四季生肖』实力平台！</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 5px;
+            background-color: #fff;
+            color: #000;
+        }
+        .content {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .win-animal {
+            color: #FF0000;
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+
+<div id="content-container" class="content"></div>
+
+<script>
+    const SPREADSHEET_ID = '19wtMwveTJ_eW09pp7ANQj1NkLNbHIA4kWLsoNAk5Xd8';
+    const SHEET_NAME_KQ = 'KQ_AOMEN';
+    const SHEET_NAME_DULIEU = 'DULIEU';
+
+    const URL_KQ = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_KQ}`;
+    const URL_DULIEU = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_DULIEU}`;
+
+    let duLieuMap = {};
+
+    const SEASON_MAP = {
+        "春": ["兔", "虎", "龙"],
+        "夏": ["马", "蛇", "羊"],
+        "秋": ["鸡", "猴", "狗"],
+        "冬": ["鼠", "猪", "牛"]
+    };
+
+    const STATIC_PREDICTIONS = {
+        1: "秋冬春", 2: "春夏秋", 3: "春夏冬", 4: "秋冬夏", 5: "春夏春", 6: "秋冬秋", 7: "春夏冬", 8: "秋冬春", 9: "春夏秋", 10: "春夏冬",
+        11: "秋冬夏", 12: "春夏春", 13: "秋冬秋", 14: "春夏冬", 15: "秋冬春", 16: "春夏秋", 17: "春夏冬", 18: "秋冬夏", 19: "春夏春", 20: "秋冬秋",
+        21: "春夏冬", 22: "秋冬春", 23: "春夏秋", 24: "春夏冬", 25: "秋冬夏", 26: "春夏春", 27: "秋冬秋", 28: "春夏冬", 29: "秋冬春", 30: "春夏秋",
+        31: "春夏冬", 32: "秋冬夏", 33: "春夏春", 34: "秋冬秋", 35: "春夏冬", 36: "秋冬春", 37: "春夏秋", 38: "春夏冬", 39: "秋冬夏", 40: "春夏春",
+        41: "秋冬秋", 42: "春夏冬", 43: "秋冬春", 44: "春夏秋", 45: "春夏冬", 46: "秋冬夏", 47: "春夏春", 48: "秋冬秋", 49: "春夏冬", 50: "秋冬春",
+        51: "春夏秋", 52: "春夏冬", 53: "秋冬夏", 54: "春夏春", 55: "秋冬秋", 56: "春夏冬", 57: "秋冬春", 58: "春夏秋", 59: "春夏冬", 60: "秋冬夏",
+        61: "春夏春", 62: "秋冬秋", 63: "春夏冬", 64: "秋冬春", 65: "春夏秋", 66: "春夏冬", 67: "秋冬夏", 68: "春夏春", 69: "秋冬秋", 70: "春夏冬",
+        71: "秋冬春", 72: "春夏秋", 73: "春夏冬", 74: "秋冬夏", 75: "春夏春", 76: "秋冬秋", 77: "春夏冬", 78: "秋冬春", 79: "春夏秋", 80: "春夏冬",
+        81: "秋冬夏", 82: "春夏春", 83: "秋冬秋", 84: "春夏冬", 85: "秋冬春", 86: "春夏秋", 87: "春夏冬", 88: "秋冬夏", 89: "春夏春", 90: "秋冬秋",
+        91: "春夏冬", 92: "秋冬春", 93: "春夏秋", 94: "春夏冬", 95: "秋冬夏", 96: "春夏春", 97: "秋冬秋", 98: "春夏冬", 99: "秋冬春", 100: "春夏秋",
+        101: "春夏冬", 102: "秋冬夏", 103: "春夏春", 104: "秋冬秋", 105: "春夏冬", 106: "秋冬春", 107: "春夏秋", 108: "春夏冬", 109: "秋冬夏", 110: "春夏春",
+        111: "秋冬秋", 112: "春夏冬", 113: "秋冬春", 114: "春夏秋", 115: "春夏冬", 116: "秋冬夏", 117: "春夏春", 118: "秋冬秋", 119: "春夏冬", 120: "秋冬春",
+        121: "春夏秋", 122: "春夏冬", 123: "秋冬夏", 124: "春夏春", 125: "秋冬秋", 126: "春夏冬", 127: "秋冬春", 128: "春夏秋", 129: "春夏冬", 130: "秋冬夏",
+        131: "春夏春", 132: "秋冬秋", 133: "春夏冬", 134: "秋冬春", 135: "春夏秋", 136: "春夏冬", 137: "秋冬夏", 138: "春夏春", 139: "秋冬秋", 140: "春夏冬",
+        141: "秋冬春", 142: "春夏秋", 143: "春夏冬", 144: "秋冬夏", 145: "春夏春", 146: "秋冬秋", 147: "春夏冬", 148: "秋冬春", 149: "春夏秋", 150: "春夏冬",
+        151: "秋冬夏", 152: "春夏春", 153: "秋冬秋", 154: "春夏冬", 155: "秋冬春", 156: "春夏秋", 157: "春夏冬", 158: "秋冬夏", 159: "春夏春", 160: "秋冬秋",
+        161: "春夏冬", 162: "秋冬春", 163: "春夏秋", 164: "春夏冬", 165: "秋冬夏", 166: "春夏春", 167: "秋冬秋", 168: "春夏冬", 169: "秋冬春", 170: "春夏秋",
+        171: "春夏冬", 172: "秋冬夏", 173: "春夏春", 174: "秋冬秋", 175: "春夏冬", 176: "秋冬春", 177: "春夏秋", 178: "春夏冬", 179: "秋冬夏", 180: "春夏春",
+        181: "秋冬秋", 182: "春夏冬", 183: "秋冬春", 184: "春夏秋", 185: "春夏冬", 186: "秋冬夏", 187: "春夏春", 188: "秋冬秋", 189: "春夏冬", 190: "秋冬春",
+        191: "春夏秋", 192: "春夏冬", 193: "秋冬夏", 194: "春夏春", 195: "秋冬秋", 196: "春夏冬", 197: "秋冬春", 198: "春夏秋", 199: "春夏冬", 200: "秋冬夏",
+        201: "春夏春", 202: "秋冬秋", 203: "春夏冬", 204: "秋冬春", 205: "春夏秋", 206: "春夏冬", 207: "秋冬夏", 208: "春夏春", 209: "秋冬秋", 210: "春夏冬",
+        211: "秋冬春", 212: "春夏秋", 213: "春夏冬", 214: "秋冬夏", 215: "春夏春", 216: "秋冬秋", 217: "春夏冬", 218: "秋冬春", 219: "春夏秋", 220: "春夏冬",
+        221: "秋冬夏", 222: "春夏春", 223: "秋冬秋", 224: "春夏冬", 225: "秋冬春", 226: "春夏秋", 227: "春夏冬", 228: "秋冬夏", 229: "春夏春", 230: "秋冬秋",
+        231: "春夏冬", 232: "秋冬春", 233: "春夏秋", 234: "春夏冬", 235: "秋冬夏", 236: "春夏春", 237: "秋冬秋", 238: "春夏冬", 239: "秋冬春", 240: "春夏秋",
+        241: "春夏冬", 242: "秋冬夏", 243: "春夏春", 244: "秋冬秋", 245: "春夏冬", 246: "秋冬春", 247: "春夏秋", 248: "春夏冬", 249: "秋冬夏", 250: "春夏春",
+        251: "秋冬秋", 252: "春夏冬", 253: "秋冬春", 254: "春夏秋", 255: "春夏冬", 256: "秋冬夏", 257: "春夏春", 258: "秋冬秋", 259: "春夏冬", 260: "秋冬春",
+        261: "春夏秋", 262: "春夏冬", 263: "秋冬夏", 264: "春夏春", 265: "秋冬秋", 266: "春夏冬", 267: "秋冬春", 268: "春夏秋", 269: "春夏冬", 270: "秋冬夏",
+        271: "春夏春", 272: "秋冬秋", 273: "春夏冬", 274: "秋冬春", 275: "春夏秋", 276: "春夏冬", 277: "秋冬夏", 278: "春夏春", 279: "秋冬秋", 280: "春夏冬",
+        281: "秋冬春", 282: "春夏秋", 283: "春夏冬", 284: "秋冬夏", 285: "春夏春", 286: "秋冬秋", 287: "春夏冬", 288: "秋冬春", 289: "春夏秋", 290: "春夏冬",
+        291: "秋冬夏", 292: "春夏春", 293: "秋冬秋", 294: "春夏冬", 295: "秋冬春", 296: "春夏秋", 297: "春夏冬", 298: "秋冬夏", 299: "春夏春", 300: "秋冬秋",
+        301: "春夏冬", 302: "秋冬春", 303: "春夏秋", 304: "春夏冬", 305: "秋冬夏", 306: "春夏春", 307: "秋冬秋", 308: "春夏冬", 309: "秋冬春", 310: "春夏秋",
+        311: "春夏冬", 312: "秋冬夏", 313: "春夏春", 314: "秋冬秋", 315: "春夏冬", 316: "秋冬春", 317: "春夏秋", 318: "春夏冬", 319: "秋冬夏", 320: "春夏春",
+        321: "秋冬秋", 322: "春夏冬", 323: "秋冬春", 324: "春夏秋", 325: "春夏冬", 326: "秋冬夏", 327: "春夏春", 328: "秋冬秋", 329: "春夏冬", 330: "秋冬春",
+        331: "春夏秋", 332: "春夏冬", 333: "秋冬夏", 334: "春夏春", 335: "秋冬秋", 336: "春夏冬", 337: "秋冬春", 338: "春夏秋", 339: "春夏冬", 340: "秋冬夏",
+        341: "春夏春", 342: "秋冬秋", 343: "春夏冬", 344: "秋冬春", 345: "春夏秋", 346: "春夏冬", 347: "秋冬夏", 348: "春夏春", 349: "秋冬秋", 350: "春夏冬",
+        351: "秋冬春", 352: "春夏秋", 353: "春夏冬", 354: "秋冬夏", 355: "春夏春", 356: "秋冬秋", 357: "春夏冬", 358: "秋冬春", 359: "春夏秋", 360: "春夏冬",
+        361: "秋冬夏", 362: "春夏春", 363: "秋冬秋", 364: "春夏冬", 365: "秋冬春", 366: "春夏秋"
+    };
+
+    function fetchJSONP(url) {
+        return fetch(url)
+            .then(res => res.text())
+            .then(text => {
+                const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+                if (match && match[1]) return JSON.parse(match[1]);
+                throw new Error(" ");
+            });
+    }
+
+    function getPredictSeasonForKy(kyNum) {
+        if (STATIC_PREDICTIONS[kyNum]) {
+            return STATIC_PREDICTIONS[kyNum];
+        }
+        const options = ["春", "夏", "秋", "冬"];
+        let idx = (kyNum - 1) % 4;
+        let p1 = options[idx];
+        let p2 = options[(idx + 1) % 4];
+        let p3 = options[(idx + 2) % 4];
+        return p1 + p2 + p3;
+    }
+
+    function getSeasonByAnimal(animalStr) {
+        for (let key in SEASON_MAP) {
+            if (SEASON_MAP[key].includes(animalStr)) {
+                return key;
+            }
+        }
+        return "";
+    }
+
+    function formatTwoDigits(val) {
+        let num = parseInt(String(val).replace(/\D/g, ''), 10);
+        if (isNaN(num)) return '';
+        return String(num).padStart(2, '0');
+    }
+
+    async function initPredict() {
+        try {
+            const rawRules = await fetchJSONP(URL_DULIEU);
+            if (rawRules.table && rawRules.table.rows) {
+                rawRules.table.rows.forEach(r => {
+                    if (r.c && r.c[0] && r.c[0].v !== null && r.c[0].v !== undefined) {
+                        let formattedNum = formatTwoDigits(r.c[0].v);
+                        let animal = (r.c[1] && r.c[1].v !== null && r.c[1].v !== undefined) ? String(r.c[1].v).trim() : '';
+                        if (formattedNum && animal) {
+                            duLieuMap[formattedNum] = animal;
+                        }
+                    }
+                });
+            }
+
+            const rawKQ = await fetchJSONP(URL_KQ);
+            const rows = rawKQ.table.rows;
+            let parsedList = [];
+            let maxKyNum = 0;
+
+            if (rows) {
+                for (let i = 0; i < rows.length; i++) {
+                    const r = rows[i].c;
+                    if (!r || !r[0] || r[0].v === null || r[0].v === undefined) continue;
+                    
+                    let kyRaw = String(r[0].v).trim();
+                    let kyOnlyNum = parseInt(kyRaw.replace(/\D/g, ''), 10) || 0;
+                    
+                    let numTeFormatted = '';
+                    if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '' && String(r[7].v).trim() !== '00') {
+                        numTeFormatted = formatTwoDigits(r[7].v);
+                    }
+
+                    if (kyOnlyNum > 0) {
+                        parsedList.push({
+                            kyNum: kyOnlyNum,
+                            numTe: numTeFormatted
+                        });
+                        if (kyOnlyNum > maxKyNum) {
+                            maxKyNum = kyOnlyNum;
+                        }
+                    }
+                }
+            }
+
+            let doneList = [];
+            let limitRange = Math.min(parsedList.length, 365);
+            let startIndex = parsedList.length - limitRange;
+
+            for (let i = startIndex; i < parsedList.length; i++) {
+                let item = parsedList[i];
+                let isDone = item.numTe !== '' && item.numTe !== '00';
+                if (isDone) {
+                    doneList.push(item);
+                }
+            }
+
+            let evaluatedDoneList = [];
+            for (let i = 0; i < doneList.length; i++) {
+                let item = doneList[i];
+                let predicted = getPredictSeasonForKy(item.kyNum);
+                let animalWin = duLieuMap[item.numTe] || '';
+                let actualKey = getSeasonByAnimal(animalWin);
+                let isWin = actualKey !== "" && predicted.includes(actualKey);
+                evaluatedDoneList.push({ item, isWin });
+            }
+
+            let checkLatestMisses = 0;
+            for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                if (!evaluatedDoneList[i].isWin) {
+                    checkLatestMisses++;
+                } else {
+                    break;
+                }
+            }
+
+            let cutoffIndex = evaluatedDoneList.length;
+            if (checkLatestMisses < 3) {
+                let consecutiveMisses = 0;
+                for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                    if (!evaluatedDoneList[i].isWin) {
+                        consecutiveMisses++;
+                        if (consecutiveMisses >= 3) {
+                            cutoffIndex = i + 1;
+                            break;
+                        }
+                    } else {
+                        consecutiveMisses = 0;
+                    }
+                }
+            }
+
+            let nextKyNum = maxKyNum + 1;
+            let predictNext = getPredictSeasonForKy(nextKyNum);
+            let kyStrNext = String(nextKyNum).padStart(3, '0');
+
+            let htmlNextKy = `<li><span style="font-size: 18px;">${kyStrNext}期:【四季生肖】『<span style="color: #FF0000">${predictNext}</span>』开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">？00</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span></li>`;
+
+            let historyOutputs = [];
+            if (checkLatestMisses < 3) {
+                for (let i = cutoffIndex; i < doneList.length; i++) {
+                    let item = doneList[i];
+                    let predicted = getPredictSeasonForKy(item.kyNum);
+                    let animalWin = duLieuMap[item.numTe] || '';
+                    let actualKey = getSeasonByAnimal(animalWin);
+                    let isWin = actualKey !== "" && predicted.includes(actualKey);
+
+                    if (isWin) {
+                        let resStrWin = animalWin + item.numTe;
+                        let kyStr = String(item.kyNum).padStart(3, '0');
+                        
+                        let formattedPredict = "";
+                        for (let char of predicted) {
+                            if (char === actualKey) {
+                                formattedPredict += `<span style="background-color: yellow; color: rgb(255, 0, 0);">${char}</span>`;
+                            } else {
+                                formattedPredict += char;
+                            }
+                        }
+
+                        historyOutputs.push(`<li><span style="font-size: 18px;">${kyStr}期:【四季生肖】『<span style="color: #FF0000">${formattedPredict}</span>』开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">${resStrWin}</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span></li>`);
+                    }
+                }
+            }
+            historyOutputs.reverse();
+
+            let finalOutputs = [htmlNextKy, ...historyOutputs];
+
+            let currentCount = finalOutputs.length;
+            if (currentCount === 1) {
+                let kyStr1 = String(nextKyNum + 1).padStart(3, '0');
+                let kyStr2 = String(nextKyNum + 2).padStart(3, '0');
+                let defaultHtml1 = `<li><span style="font-size: 18px;">${kyStr1}期:【四季生肖】『<span style="color: #FF0000">發發發</span>』开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">？00</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span></li>`;
+                let defaultHtml2 = `<li><span style="font-size: 18px;">${kyStr2}期:【四季生肖】『<span style="color: #FF0000">發發發</span>』开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">？00</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span></li>`;
+                finalOutputs.unshift(defaultHtml1);
+                finalOutputs.unshift(defaultHtml2);
+            } else if (currentCount === 2) {
+                let kyStrExtra = String(nextKyNum + 1).padStart(3, '0');
+                let defaultHtmlExtra = `<li><span style="font-size: 18px;">${kyStrExtra}期:【四季生肖】『<span style="color: #FF0000">發發發</span>』开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">？00</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span></li>`;
+                finalOutputs.unshift(defaultHtmlExtra);
+            }
+
+            document.getElementById('content-container').innerHTML = finalOutputs.join('');
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('content-container').innerHTML = ' ';
+        }
+    }
+    initPredict();
+</script>
+
+</body>
+</html>
