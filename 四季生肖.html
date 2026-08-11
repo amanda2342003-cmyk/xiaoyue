@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳门六合彩『四季生肖』精心研制！</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 5px;
+            background-color: #fff;
+            color: #000;
+        }
+        .content {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div id="content-container" class="content"></div>
+
+<script>
+    const SPREADSHEET_ID = '19wtMwveTJ_eW09pp7ANQj1NkLNbHIA4kWLsoNAk5Xd8';
+    const SHEET_NAME_KQ = 'KQ_AOMEN';
+    const SHEET_NAME_DULIEU = 'DULIEU';
+
+    const URL_KQ = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_KQ}`;
+    const URL_DULIEU = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_DULIEU}`;
+
+    let duLieuMap = {};
+
+    const SIJI_MAP = {
+        "春": ["兔", "虎", "龙"],
+        "夏": ["马", "蛇", "羊"],
+        "秋": ["鸡", "猴", "狗"],
+        "冬": ["鼠", "猪", "牛"]
+    };
+
+    function fetchJSONP(url) {
+        return fetch(url)
+            .then(res => res.text())
+            .then(text => {
+                const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+                if (match && match[1]) return JSON.parse(match[1]);
+                throw new Error(" ");
+            });
+    }
+
+    function getPredictSiJiForKy(kyNum) {
+        const options = ["夏", "春", "秋", "冬"];
+        let idx = (kyNum - 1) % 4;
+        let p1 = options[idx];
+        let p2 = options[(idx + 1) % 4];
+        let p3 = options[(idx + 2) % 4];
+        return p1 + p2 + p3;
+    }
+
+    function getSiJiByAnimal(animalStr) {
+        for (let key in SIJI_MAP) {
+            if (SIJI_MAP[key].includes(animalStr)) {
+                return key;
+            }
+        }
+        return "";
+    }
+
+    // Chuẩn hóa mọi định dạng số (ví dụ: 7, "7", "07", 7.0 đều thành "07")
+    function formatTwoDigits(val) {
+        if (val === null || val === undefined) return '';
+        let num = parseInt(String(val).replace(/\D/g, ''), 10);
+        if (isNaN(num)) return '';
+        return String(num).padStart(2, '0');
+    }
+
+    async function initPredict() {
+        try {
+            const rawRules = await fetchJSONP(URL_DULIEU);
+            if (rawRules.table && rawRules.table.rows) {
+                rawRules.table.rows.forEach(r => {
+                    if (r.c && r.c[0] && r.c[0].v !== null && r.c[0].v !== undefined) {
+                        let formattedNum = formatTwoDigits(r.c[0].v);
+                        let animal = (r.c[1] && r.c[1].v !== null && r.c[1].v !== undefined) ? String(r.c[1].v).trim() : '';
+                        if (formattedNum && animal) {
+                            duLieuMap[formattedNum] = animal;
+                        }
+                    }
+                });
+            }
+
+            const rawKQ = await fetchJSONP(URL_KQ);
+            const rows = rawKQ.table.rows;
+            let parsedList = [];
+            let maxKyNum = 0;
+
+            if (rows) {
+                for (let i = 0; i < rows.length; i++) {
+                    const r = rows[i].c;
+                    if (!r || !r[0] || r[0].v === null || r[0].v === undefined) continue;
+                    
+                    let kyRaw = String(r[0].v).trim();
+                    let kyOnlyNum = parseInt(kyRaw.replace(/\D/g, ''), 10) || 0;
+                    
+                    let numTeFormatted = '';
+                    if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '' && String(r[7].v).trim() !== '00') {
+                        numTeFormatted = formatTwoDigits(r[7].v);
+                    }
+
+                    if (kyOnlyNum > 0) {
+                        parsedList.push({
+                            kyNum: kyOnlyNum,
+                            numTe: numTeFormatted
+                        });
+                        if (kyOnlyNum > maxKyNum) {
+                            maxKyNum = kyOnlyNum;
+                        }
+                    }
+                }
+            }
+
+            let doneList = [];
+            let limitRange = Math.min(parsedList.length, 365);
+            let startIndex = parsedList.length - limitRange;
+
+            for (let i = startIndex; i < parsedList.length; i++) {
+                let item = parsedList[i];
+                let isDone = item.numTe !== '' && item.numTe !== '00';
+                if (isDone) {
+                    doneList.push(item);
+                }
+            }
+
+            let evaluatedDoneList = [];
+            for (let i = 0; i < doneList.length; i++) {
+                let item = doneList[i];
+                let predicted = getPredictSiJiForKy(item.kyNum);
+                let animalWin = duLieuMap[item.numTe] || '';
+                let actualKey = getSiJiByAnimal(animalWin);
+                let isWin = actualKey !== "" && predicted.includes(actualKey);
+                evaluatedDoneList.push({ item, isWin });
+            }
+
+            let checkLatestMisses = 0;
+            for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                if (!evaluatedDoneList[i].isWin) {
+                    checkLatestMisses++;
+                } else {
+                    break;
+                }
+            }
+
+            let cutoffIndex = evaluatedDoneList.length;
+            if (checkLatestMisses < 3) {
+                let consecutiveMisses = 0;
+                for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                    if (!evaluatedDoneList[i].isWin) {
+                        consecutiveMisses++;
+                        if (consecutiveMisses >= 3) {
+                            cutoffIndex = i + 1;
+                            break;
+                        }
+                    } else {
+                        consecutiveMisses = 0;
+                    }
+                }
+            }
+
+            let nextKyNum = maxKyNum + 1;
+            let predictNext = getPredictSiJiForKy(nextKyNum);
+            let kyStrNext = String(nextKyNum).padStart(3, '0');
+
+            let htmlNextKy = `<li><span style="font-size: 18px;">${kyStrNext}期:【四季生肖】『<span style="color: #FF0000">${predictNext}</span>』开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">？00</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span></li>`;
+
+            let historyOutputs = [];
+            if (checkLatestMisses < 3) {
+                for (let i = cutoffIndex; i < doneList.length; i++) {
+                    let item = doneList[i];
+                    let predicted = getPredictSiJiForKy(item.kyNum);
+                    let animalWin = duLieuMap[item.numTe] || '';
+                    let actualKey = getSiJiByAnimal(animalWin);
+                    let isWin = actualKey !== "" && predicted.includes(actualKey);
+
+                    if (isWin) {
+                        let resStrWin = animalWin + item.numTe;
+                        let kyStr = String(item.kyNum).padStart(3, '0');
+                        
+                        let formattedPredict = "";
+                        for (let char of predicted) {
+                            if (char === actualKey) {
+                                formattedPredict += `<span style="background-color: yellow; color: #FF0000;">${char}</span>`;
+                            } else {
+                                formattedPredict += char;
+                            }
+                        }
+
+                        historyOutputs.push(`<li><span style="font-size: 18px;">${kyStr}期:【四季生肖】『<span style="color: #FF0000">${formattedPredict}</span>』开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">${resStrWin}</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span></li>`);
+                    }
+                }
+            }
+            historyOutputs.reverse();
+
+            let finalOutputs = [htmlNextKy, ...historyOutputs];
+
+            let currentCount = finalOutputs.length;
+            if (currentCount === 1) {
+                let kyStr1 = String(nextKyNum + 1).padStart(3, '0');
+                let kyStr2 = String(nextKyNum + 2).padStart(3, '0');
+                let defaultHtml1 = `<li><span style="font-size: 18px;">${kyStr1}期:【四季生肖】『<span style="color: #FF0000">發發發</span>』开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">？00</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span></li>`;
+                let defaultHtml2 = `<li><span style="font-size: 18px;">${kyStr2}期:【四季生肖】『<span style="color: #FF0000">發發發</span>』开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">？00</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span></li>`;
+                finalOutputs.unshift(defaultHtml1);
+                finalOutputs.unshift(defaultHtml2);
+            } else if (currentCount === 2) {
+                let kyStrExtra = String(nextKyNum + 1).padStart(3, '0');
+                let defaultHtmlExtra = `<li><span style="font-size: 18px;">${kyStrExtra}期:【四季生肖】『<span style="color: #FF0000">發發發</span>』开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">？00</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span></li>`;
+                finalOutputs.unshift(defaultHtmlExtra);
+            }
+
+            document.getElementById('content-container').innerHTML = '<ul>' + finalOutputs.join('') + '</ul>';
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('content-container').innerHTML = ' ';
+        }
+    }
+    initPredict();
+</script>
+
+</body>
+</html>
