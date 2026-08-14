@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳门六合彩【绝杀一肖】精准猛料！</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 5px;
+            background-color: #fff;
+            color: #000;
+        }
+        .content {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .win-animal {
+            color: #FF0000;
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+
+<div id="content-container" class="content"></div>
+
+<script>
+    const SPREADSHEET_ID = '19wtMwveTJ_eW09pp7ANQj1NkLNbHIA4kWLsoNAk5Xd8';
+    const SHEET_NAME_KQ = 'KQ_AOMEN';
+    const SHEET_NAME_DULIEU = 'DULIEU';
+
+    const URL_KQ = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_KQ}`;
+    const URL_DULIEU = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_DULIEU}`;
+
+    let duLieuMap = {};
+
+const STATIC_PREDICTIONS = {
+       1: "虎", 2: "牛", 3: "兔", 4: "鸡", 5: "猴", 6: "蛇", 7: "虎", 8: "兔", 9: "狗", 10: "羊", 11: "猪", 12: "虎", 13: "牛", 14: "马", 15: "龙", 16: "狗", 17: "羊", 18: "猴", 19: "马", 20: "龙", 21: "猪", 22: "鼠", 23: "猴", 24: "狗", 25: "鸡", 26: "蛇", 27: "兔", 28: "鼠", 29: "龙", 30: "牛", 31: "狗", 32: "鸡", 33: "羊", 34: "兔", 35: "牛", 36: "虎", 37: "龙", 38: "狗", 39: "兔", 40: "猪", 41: "牛", 42: "龙", 43: "猴", 44: "蛇", 45: "虎", 46: "兔", 47: "狗", 48: "马", 49: "猪", 50: "蛇", 51: "猴", 52: "羊", 53: "马", 54: "虎", 55: "蛇", 56: "牛", 57: "狗", 58: "鼠", 59: "马", 60: "鸡", 61: "虎", 62: "牛", 63: "猪", 64: "狗", 65: "羊", 66: "鼠", 67: "鸡", 68: "兔", 69: "牛", 70: "羊", 71: "猪", 72: "鼠", 73: "虎", 74: "马", 75: "龙", 76: "蛇", 77: "猴", 78: "牛", 79: "鸡", 80: "兔", 81: "猪", 82: "龙", 83: "鼠", 84: "鸡", 85: "狗", 86: "猪", 87: "蛇", 88: "羊", 89: "龙", 90: "虎", 91: "鸡", 92: "鼠", 93: "羊", 94: "猴", 95: "猪", 96: "马", 97: "虎", 98: "鸡", 99: "羊", 100: "兔", 101: "龙", 102: "兔", 103: "狗", 104: "鼠", 105: "猪", 106: "虎", 107: "羊", 108: "马", 109: "兔", 110: "龙", 111: "鼠", 112: "鸡", 113: "狗", 114: "猴", 115: "蛇", 116: "鼠", 117: "兔", 118: "牛", 119: "龙", 120: "狗", 121: "鼠", 122: "猪", 123: "牛", 124: "鸡", 125: "兔", 126: "鼠", 127: "狗", 128: "猴", 129: "羊", 130: "蛇", 131: "鸡", 132: "兔", 133: "鼠", 134: "虎", 135: "龙", 136: "蛇", 137: "猪", 138: "狗", 139: "马", 140: "猴", 141: "龙", 142: "鼠", 143: "兔", 144: "鸡", 145: "羊", 146: "牛", 147: "猴", 148: "鼠", 149: "猪", 150: "龙", 151: "牛", 152: "兔", 153: "虎", 154: "猴", 155: "鸡", 156: "蛇", 157: "鼠", 158: "马", 159: "龙", 160: "虎", 161: "猪", 162: "兔", 163: "牛", 164: "狗", 165: "鼠", 166: "虎", 167: "兔", 168: "猴", 169: "猪", 170: "狗", 171: "鼠", 172: "鸡", 173: "羊", 174: "猪", 175: "虎", 176: "牛", 177: "龙", 178: "兔", 179: "鸡", 180: "猪", 181: "蛇", 182: "猴", 183: "兔", 184: "羊", 185: "龙", 186: "鸡", 187: "猴", 188: "兔", 189: "蛇", 190: "鼠", 191: "龙", 192: "猪", 193: "兔", 194: "虎", 195: "羊", 196: "鼠", 197: "鸡", 198: "龙", 199: "牛", 200: "马", 201: "虎", 202: "鸡", 203: "鼠", 204: "牛", 205: "蛇", 206: "龙", 207: "猴", 208: "羊", 209: "狗", 210: "牛", 211: "马", 212: "鼠", 213: "猴", 214: "虎", 215: "龙", 216: "马", 217: "猪", 218: "蛇", 219: "狗", 220: "猴", 221: "羊", 222: "虎", 223: "牛", 224: "鼠", 225: "蛇", 226: "狗", 227: "龙", 228: "猪", 229: "鼠", 230: "羊", 231: "蛇", 232: "猴", 233: "兔", 234: "马", 235: "鸡", 236: "蛇", 237: "鼠", 238: "猴", 239: "虎", 240: "牛", 241: "羊", 242: "猪", 243: "兔", 244: "虎", 245: "狗", 246: "龙", 247: "鼠", 248: "猴", 249: "兔", 250: "鸡", 251: "蛇", 252: "虎", 253: "狗", 254: "龙", 255: "猪", 256: "猴", 257: "马", 258: "鸡", 259: "龙", 260: "猪", 261: "兔", 262: "猴", 263: "牛", 264: "马", 265: "龙", 266: "鸡", 267: "猪", 268: "狗", 269: "马", 270: "虎", 271: "鸡", 272: "羊", 273: "猴", 274: "龙", 275: "鼠", 276: "蛇", 277: "兔", 278: "狗", 279: "猴", 280: "牛", 281: "马", 282: "鸡", 283: "猪", 284: "羊", 285: "猴", 286: "龙", 287: "蛇", 288: "马", 289: "鼠", 290: "鸡", 291: "兔", 292: "羊", 293: "牛", 294: "蛇", 295: "猴", 296: "鼠", 297: "龙", 298: "羊", 299: "马", 300: "鸡", 301: "鸡", 302: "猪", 303: "虎", 304: "龙", 305: "兔", 306: "鸡", 307: "蛇", 308: "猴", 309: "鼠", 310: "猪", 311: "龙", 312: "虎", 313: "狗", 314: "羊", 315: "猪", 316: "猴", 317: "牛", 318: "兔", 319: "鼠", 320: "羊", 321: "龙", 322: "牛", 323: "虎", 324: "狗", 325: "鸡", 326: "蛇", 327: "牛", 328: "猴", 329: "鼠", 330: "猪", 331: "蛇", 332: "龙", 333: "兔", 334: "马", 335: "虎", 336: "猴", 337: "龙", 338: "兔", 339: "蛇", 340: "马", 341: "羊", 342: "猪", 343: "牛", 344: "虎", 345: "马", 346: "猴", 347: "龙", 348: "蛇", 349: "牛", 350: "鼠", 351: "猪", 352: "狗", 353: "兔", 354: "虎", 355: "猴", 356: "牛", 357: "猪", 358: "马", 359: "蛇", 360: "羊", 361: "狗", 362: "猴", 363: "龙", 364: "牛", 365: "虎", 366: "鸡"
+};
+
+    function fetchJSONP(url) {
+        return fetch(url)
+            .then(res => res.text())
+            .then(text => {
+                const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+                if (match && match[1]) return JSON.parse(match[1]);
+                throw new Error(" ");
+            });
+    }
+
+    function getPredictDanShuangForKy(kyNum) {
+        let actualKy = ((kyNum - 1) % 366) + 1;
+        return STATIC_PREDICTIONS[actualKy] || "鼠";
+    }
+
+    function formatTwoDigits(val) {
+        let num = parseInt(String(val).replace(/\D/g, ''), 10);
+        if (isNaN(num)) return '';
+        return String(num).padStart(2, '0');
+    }
+
+    async function initPredict() {
+        try {
+            const rawRules = await fetchJSONP(URL_DULIEU);
+            if (rawRules.table && rawRules.table.rows) {
+                rawRules.table.rows.forEach(r => {
+                    if (r.c && r.c[0] && r.c[0].v !== null && r.c[0].v !== undefined) {
+                        let formattedNum = formatTwoDigits(r.c[0].v);
+                        let animal = (r.c[1] && r.c[1].v !== null && r.c[1].v !== undefined) ? String(r.c[1].v).trim() : '';
+                        if (formattedNum && animal) {
+                            duLieuMap[formattedNum] = animal;
+                        }
+                    }
+                });
+            }
+
+            const rawKQ = await fetchJSONP(URL_KQ);
+            const rows = rawKQ.table.rows;
+            let parsedList = [];
+            let maxKyNum = 0;
+
+            if (rows) {
+                for (let i = 0; i < rows.length; i++) {
+                    const r = rows[i].c;
+                    if (!r || !r[0] || r[0].v === null || r[0].v === undefined) continue;
+                    
+                    let kyRaw = String(r[0].v).trim();
+                    let kyOnlyNum = parseInt(kyRaw.replace(/\D/g, ''), 10) || 0;
+                    
+                    let numTeFormatted = '';
+                    if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '' && String(r[7].v).trim() !== '00') {
+                        numTeFormatted = formatTwoDigits(r[7].v);
+                    }
+
+                    if (kyOnlyNum > 0) {
+                        parsedList.push({
+                            kyNum: kyOnlyNum,
+                            numTe: numTeFormatted
+                        });
+                        if (kyOnlyNum > maxKyNum) {
+                            maxKyNum = kyOnlyNum;
+                        }
+                    }
+                }
+            }
+
+            let doneList = [];
+            let limitRange = Math.min(parsedList.length, 365);
+            let startIndex = parsedList.length - limitRange;
+
+            for (let i = startIndex; i < parsedList.length; i++) {
+                let item = parsedList[i];
+                let isDone = item.numTe !== '' && item.numTe !== '00';
+                if (isDone) {
+                    doneList.push(item);
+                }
+            }
+
+            let evaluatedDoneList = [];
+            for (let i = 0; i < doneList.length; i++) {
+                let item = doneList[i];
+                let predicted = getPredictDanShuangForKy(item.kyNum);
+                let actualAnimal = duLieuMap[item.numTe] || '';
+                let isValidNum = duLieuMap.hasOwnProperty(item.numTe);
+                
+                // Đoán sai kết quả (tức kết quả ra con khác con cấm) -> Giữ lại (isWin = true)
+                // Đoán đúng kết quả (tức kết quả trúng con cấm) -> Bị xóa (isWin = false)
+                let isWin = isValidNum && actualAnimal && (actualAnimal !== predicted);
+
+                evaluatedDoneList.push({ item, isWin });
+            }
+
+            // Kiểm tra: Quá 3 kỳ liên tiếp bị xóa (isWin === false) thì xóa hết đi bắt đầu lại từ đầu
+            let checkLatestDeletes = 0;
+            for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                if (!evaluatedDoneList[i].isWin) {
+                    checkLatestDeletes++;
+                } else {
+                    break;
+                }
+            }
+
+            let cutoffIndex = 0;
+            if (checkLatestDeletes >= 3) {
+                cutoffIndex = evaluatedDoneList.length;
+            } else {
+                let consecutiveDeletes = 0;
+                for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                    if (!evaluatedDoneList[i].isWin) {
+                        consecutiveDeletes++;
+                        if (consecutiveDeletes >= 3) {
+                            cutoffIndex = i + 1;
+                            break;
+                        }
+                    } else {
+                        consecutiveDeletes = 0;
+                    }
+                }
+            }
+
+            let nextKyNum = maxKyNum + 1;
+            let predictNext = getPredictDanShuangForKy(nextKyNum);
+            let kyStrNext = String(nextKyNum).padStart(3, '0');
+
+            let htmlNextKy = `<p style="margin:0px;padding:0px;font-size:13pt;font-weight:700;color:#000000;">${kyStrNext}期【浪迹江湖】绝杀一肖【<span style="color:#ff0000;">${predictNext}</span>】开<span style="color:#ff0000;">？00</span>准</p>`;
+
+            let historyOutputs = [];
+            if (cutoffIndex < doneList.length) {
+                for (let i = cutoffIndex; i < doneList.length; i++) {
+                    let item = doneList[i];
+                    let evaluated = evaluatedDoneList.find(e => e.item.kyNum === item.kyNum);
+                    if (evaluated && evaluated.isWin) {
+                        let predicted = getPredictDanShuangForKy(item.kyNum);
+                        let shengXiaoWin = duLieuMap[item.numTe] || '';
+                        let resStrWin = shengXiaoWin + item.numTe;
+                        let kyStr = String(item.kyNum).padStart(3, '0');
+                        historyOutputs.push(`<p style="margin:0px;padding:0px;font-size:13pt;font-weight:700;color:#000000;">${kyStr}期【浪迹江湖】绝杀一肖【<span style="color:#ff0000;">${predicted}</span>】开<span style="color:#ff0000;">${resStrWin}</span>准</p>`);
+                    }
+                }
+            }
+            historyOutputs.reverse();
+
+            let finalOutputs = [htmlNextKy, ...historyOutputs];
+
+            // Đảm bảo tối thiểu luôn có 3 kỳ hiển thị:
+            let currentCount = finalOutputs.length;
+            if (currentCount === 1) {
+                let kyStr1 = String(nextKyNum + 1).padStart(3, '0');
+                let kyStr2 = String(nextKyNum + 2).padStart(3, '0');
+                let defaultHtml1 = `<p style="margin:0px;padding:0px;font-size:13pt;font-weight:700;color:#000000;">${kyStr1}期【浪迹江湖】绝杀一肖【<span style="color:#ff0000;">發</span>】开<span style="color:#ff0000;">？00</span>准</p>`;
+                let defaultHtml2 = `<p style="margin:0px;padding:0px;font-size:13pt;font-weight:700;color:#000000;">${kyStr2}期【浪迹江湖】绝杀一肖【<span style="color:#ff0000;">發</span>】开<span style="color:#ff0000;">？00</span>准</p>`;
+                finalOutputs.unshift(defaultHtml1);
+                finalOutputs.unshift(defaultHtml2);
+            } else if (currentCount === 2) {
+                let kyStrExtra = String(nextKyNum + 1).padStart(3, '0');
+                let defaultHtmlExtra = `<p style="margin:0px;padding:0px;font-size:13pt;font-weight:700;color:#000000;">${kyStrExtra}期【浪迹江湖】绝杀一肖【<span style="color:#ff0000;">發</span>】开<span style="color:#ff0000;">？00</span>准</p>`;
+                finalOutputs.unshift(defaultHtmlExtra);
+            }
+
+            document.getElementById('content-container').innerHTML = finalOutputs.join('');
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('content-container').innerHTML = ' ';
+        }
+    }
+    initPredict();
+</script>
+
+</body>
+</html>
