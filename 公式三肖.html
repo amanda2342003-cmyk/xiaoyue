@@ -194,6 +194,13 @@
         return String(num).padStart(2, '0');
     }
 
+    // Hàm định dạng số kỳ thành 3 chữ số (ví dụ: 1 -> 001, 12 -> 012)
+    function formatThreeDigits(val) {
+        let num = parseInt(String(val).replace(/\D/g, ''), 10);
+        if (isNaN(num)) return '001';
+        return String(num).padStart(3, '0');
+    }
+
     async function initPredict() {
         try {
             const rawRules = await fetchJSONP(URL_DULIEU);
@@ -201,7 +208,6 @@
                 rawRules.table.rows.forEach(r => {
                     if (r.c && r.c[0] && r.c[0].v !== null && r.c[0].v !== undefined) {
                         let formattedNum = formatTwoDigits(r.c[0].v);
-                        // Đọc trực tiếp từ Cột B (r.c[1]) theo quy hoạch cột cố định
                         let animal = (r.c[1] && r.c[1].v !== null && r.c[1].v !== undefined) ? String(r.c[1].v).trim() : '';
                         if (formattedNum && animal) {
                             duLieuMap[formattedNum] = animal;
@@ -213,7 +219,6 @@
             const rawKQ = await fetchJSONP(URL_KQ);
             const rows = rawKQ.table.rows;
             let parsedList = [];
-            let maxKyNum = 0;
 
             if (rows) {
                 for (let i = 0; i < rows.length; i++) {
@@ -224,7 +229,7 @@
                     let kyOnlyNum = parseInt(kyRaw.replace(/\D/g, ''), 10) || 0;
                     
                     let numTeFormatted = '';
-                    if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '' && String(r[7].v).trim() !== '00') {
+                    if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '') {
                         numTeFormatted = formatTwoDigits(r[7].v);
                     }
 
@@ -233,57 +238,65 @@
                             kyNum: kyOnlyNum,
                             numTe: numTeFormatted
                         });
-                        if (kyOnlyNum > maxKyNum) {
-                            maxKyNum = kyOnlyNum;
-                        }
                     }
                 }
             }
+
+            let doneList = [];
+            let pendingKyObj = null;
+
+            for (let i = 0; i < parsedList.length; i++) {
+                let item = parsedList[i];
+                let isDone = item.numTe !== '' && item.numTe !== '00';
+                if (isDone) {
+                    doneList.push(item);
+                } else {
+                    pendingKyObj = item;
+                }
+            }
+
+            let targetPredictKy = pendingKyObj ? pendingKyObj.kyNum : (doneList.length > 0 ? doneList[doneList.length - 1].kyNum + 1 : 1);
 
             let historyOutputs = [];
             let consecutiveMisses = 0;
 
-            for (let item of parsedList) {
+            for (let item of doneList) {
                 let predicted6 = getPredict6ForKy(item.kyNum);
-                let isDone = item.numTe !== '' && item.numTe !== '00';
+                let shengXiaoWin = duLieuMap[item.numTe] || '';
+                let isWin = shengXiaoWin && predicted6.includes(shengXiaoWin);
 
-                if (isDone) {
-                    let shengXiaoWin = duLieuMap[item.numTe] || '';
-                    let isWin = shengXiaoWin && predicted6.includes(shengXiaoWin);
-
-                    if (isWin) {
-                        consecutiveMisses = 0;
-                        
-                        let formattedPredictArray = predicted6.map(animal => {
-                            if (animal === shengXiaoWin) {
-                                return `<span class="win-animal">${animal}</span>`;
-                            }
-                            return animal;
-                        });
-
-                        let chan3Str = formattedPredictArray.slice(0, 3).join('');
-                        let le3Str = formattedPredictArray.slice(3, 6).join('');
-                        let formatPredict = '【' + chan3Str + '+' + le3Str + '】';
-
-                        let resStr = shengXiaoWin + item.numTe + '中';
-                        historyOutputs.push('<p><span style="font-size: 16px;">' + String(item.kyNum) + '期:' + formatPredict + ' 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">' + resStr + '</span></p>');
-                    } else {
-                        consecutiveMisses++;
-                        if (consecutiveMisses >= 3) {
-                            historyOutputs = [];
+                if (isWin) {
+                    consecutiveMisses = 0;
+                    
+                    let formattedPredictArray = predicted6.map(animal => {
+                        if (animal === shengXiaoWin) {
+                            return `<span class="win-animal">${animal}</span>`;
                         }
+                        return animal;
+                    });
+
+                    let chan3Str = formattedPredictArray.slice(0, 3).join('');
+                    let le3Str = formattedPredictArray.slice(3, 6).join('');
+                    let formatPredict = '【' + chan3Str + '+' + le3Str + '】';
+
+                    let resStr = shengXiaoWin + item.numTe + '中';
+                    historyOutputs.push('<p><span style="font-size: 16px;">' + formatThreeDigits(item.kyNum) + '期:' + formatPredict + ' 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">' + resStr + '</span></p>');
+                } else {
+                    consecutiveMisses++;
+                    if (consecutiveMisses >= 3) {
+                        historyOutputs = [];
                     }
                 }
             }
 
-            let nextKyNum = maxKyNum + 1;
+            let nextKyNum = targetPredictKy;
 
             let predictNext = getPredict6ForKy(nextKyNum);
             let chanNext = predictNext.slice(0, 3).join('');
             let leNext = predictNext.slice(3, 6).join('');
             let formatPredictNext = '【' + chanNext + '+' + leNext + '】';
 
-            let htmlNextKy = '<p><span style="font-size: 16px;">' + String(nextKyNum) + '期:' + formatPredictNext + ' 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">\uFF1F00</span><span style="font-size: 16px; color: rgb(255, 0, 0);">中</span></p>';
+            let htmlNextKy = '<p><span style="font-size: 16px;">' + formatThreeDigits(nextKyNum) + '期:' + formatPredictNext + ' 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">\uFF1F00</span><span style="font-size: 16px; color: rgb(255, 0, 0);">中</span></p>';
 
             let finalOutputs = [];
             
@@ -291,8 +304,8 @@
                 let nextKyNum2 = nextKyNum + 1;
                 let nextKyNum3 = nextKyNum + 2;
 
-                let defaultHtml2 = '<p><span style="font-size: 16px;">' + String(nextKyNum2) + '期:【發發發+發發發】 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">\uFF1F00</span><span style="font-size: 16px; color: rgb(255, 0, 0);">中</span></p>';
-                let defaultHtml3 = '<p><span style="font-size: 16px;">' + String(nextKyNum3) + '期:【發發發+發發發】 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">\uFF1F00</span><span style="font-size: 16px; color: rgb(255, 0, 0);">中</span></p>';
+                let defaultHtml2 = '<p><span style="font-size: 16px;">' + formatThreeDigits(nextKyNum2) + '期:【發發發+發發發】 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">\uFF1F00</span><span style="font-size: 16px; color: rgb(255, 0, 0);">中</span></p>';
+                let defaultHtml3 = '<p><span style="font-size: 16px;">' + formatThreeDigits(nextKyNum3) + '期:【發發發+發發發】 开:</span><span style="font-size: 16px; color: rgb(255, 0, 0); float: none; display: inline !important;" class="res-box">\uFF1F00</span><span style="font-size: 16px; color: rgb(255, 0, 0);">中</span></p>';
 
                 finalOutputs.push(defaultHtml3);
                 finalOutputs.push(defaultHtml2);
