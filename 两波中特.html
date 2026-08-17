@@ -119,10 +119,7 @@
             }
 
             let doneList = [];
-            let limitRange = Math.min(parsedList.length, 365);
-            let startIndex = parsedList.length - limitRange;
-
-            for (let i = startIndex; i < parsedList.length; i++) {
+            for (let i = 0; i < parsedList.length; i++) {
                 let item = parsedList[i];
                 let isDone = item.numTe !== '' && item.numTe !== '00';
                 if (isDone) {
@@ -130,10 +127,7 @@
                 }
             }
 
-            // Kiểm tra toàn bộ mảng từ mới nhất về cũ để tìm xem có chuỗi 3 kỳ liên tiếp sai nào không
             let consecutiveMisses = 0;
-            let cutoffIndex = doneList.length; // Mắt cắt lịch sử nếu dính 3 kỳ sai liên tiếp
-
             for (let i = doneList.length - 1; i >= 0; i--) {
                 let item = doneList[i];
                 let predictedColors = getPredictColorsForKy(item.kyNum);
@@ -142,12 +136,8 @@
 
                 if (!isWin) {
                     consecutiveMisses++;
-                    if (consecutiveMisses >= 3) {
-                        cutoffIndex = i; // Cắt bỏ toàn bộ các kỳ từ vị trí này trở về trước
-                        break;
-                    }
                 } else {
-                    consecutiveMisses = 0; // Gặp kỳ trúng thì reset đếm chuỗi sai
+                    break;
                 }
             }
 
@@ -160,18 +150,7 @@
 
             let finalOutputs = [];
 
-            // Nếu ngay từ đầu (hoặc sau khi xét) dính 3 kỳ sai liên tiếp ở nhóm mới nhất
-            let checkLatestMisses = 0;
-            for (let i = doneList.length - 1; i >= 0; i--) {
-                let item = doneList[i];
-                let predictedColors = getPredictColorsForKy(item.kyNum);
-                let actualColor = getColorByNum(item.numTe);
-                let isWin = actualColor && predictedColors.includes(actualColor);
-                if (!isWin) checkLatestMisses++;
-                else break;
-            }
-
-            if (checkLatestMisses >= 3) {
+            if (consecutiveMisses >= 3) {
                 let nextKyNum2 = nextKyNum + 1;
                 let nextKyNum3 = nextKyNum + 2;
                 let kyStr2 = String(nextKyNum2).padStart(3, '0');
@@ -185,21 +164,24 @@
                 finalOutputs.push(htmlNextKy);
             } else {
                 let historyOutputs = [];
-                // Chỉ lấy các kỳ từ sau mắt cắt (cutoffIndex) trở về sau (tức là loại bỏ hoàn toàn các kỳ đằng sau chuỗi 3 kỳ sai)
-                for (let i = cutoffIndex; i < doneList.length; i++) {
+                for (let i = 0; i < doneList.length; i++) {
                     let item = doneList[i];
                     let predictedColors = getPredictColorsForKy(item.kyNum);
                     let shengXiaoWin = duLieuMap[item.numTe] || '';
                     let actualColor = getColorByNum(item.numTe);
                     let isWin = actualColor && predictedColors.includes(actualColor);
 
-                    let formatPredict = '【' + predictedColors.join('') + '】';
-                    let formattedPredictHtml = formatPredict;
                     if (isWin) {
-                        formattedPredictHtml = formatPredict.replace(actualColor, `<span style="color:#FF0000; background-color:yellow;">${actualColor}</span>`);
-                    }
+                        let formattedPredictHtml = '【';
+                        for (let color of predictedColors) {
+                            if (color === actualColor) {
+                                formattedPredictHtml += `<span style="color:#FF0000; background-color:yellow;">${color}</span>`;
+                            } else {
+                                formattedPredictHtml += color;
+                            }
+                        }
+                        formattedPredictHtml += '】';
 
-                    if (isWin) {
                         let resStrWin = shengXiaoWin + item.numTe + '中';
                         let kyStr = String(item.kyNum).padStart(3, '0');
                         historyOutputs.push(`<p style="margin-bottom:20px;font-family:-apple-system-font,'Helvetica Neue',sans-serif;font-size:18px;"><span style="color:#008000;">${kyStr}期:▽2波中特▽</span><span style="color:rgb(51,51,51);">${formattedPredictHtml}</span><span style="color:rgb(255,0,0);">开:${resStrWin}</span></p>`);
@@ -209,10 +191,9 @@
                 
                 finalOutputs = [htmlNextKy, ...historyOutputs];
 
-                // Đảm bảo tối thiểu luôn có 3 kỳ hiển thị (nếu tổng số kỳ là 2 thì bù thêm 1 kỳ mặc định 發發發發)
-                let currentCount = finalOutputs.length;
-                if (currentCount === 2) {
-                    let extraKyNum = nextKyNum + 1;
+                while (finalOutputs.length < 3) {
+                    let extraOffset = finalOutputs.length;
+                    let extraKyNum = nextKyNum + extraOffset;
                     let extraKyStr = String(extraKyNum).padStart(3, '0');
                     let defaultHtmlExtra = `<p style="margin-bottom:20px;font-family:-apple-system-font,'Helvetica Neue',sans-serif;font-size:18px;"><span style="color:#008000;">${extraKyStr}期:▽2波中特▽</span><span style="color:rgb(51,51,51);">【發發發發】</span><span style="color:rgb(255,0,0);">开:？00中</span></p>`;
                     finalOutputs.unshift(defaultHtmlExtra);
