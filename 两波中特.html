@@ -91,7 +91,6 @@
             const rawKQ = await fetchJSONP(URL_KQ);
             const rows = rawKQ.table.rows;
             let parsedList = [];
-            let maxKyNum = 0;
 
             if (rows) {
                 for (let i = 0; i < rows.length; i++) {
@@ -102,7 +101,7 @@
                     let kyOnlyNum = parseInt(kyRaw.replace(/\D/g, ''), 10) || 0;
                     
                     let numTeFormatted = '';
-                    if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '' && String(r[7].v).trim() !== '00') {
+                    if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '') {
                         numTeFormatted = formatTwoDigits(r[7].v);
                     }
 
@@ -111,21 +110,27 @@
                             kyNum: kyOnlyNum,
                             numTe: numTeFormatted
                         });
-                        if (kyOnlyNum > maxKyNum) {
-                            maxKyNum = kyOnlyNum;
-                        }
                     }
                 }
             }
 
             let doneList = [];
+            let pendingKyObj = null;
+
+            // Đọc danh sách từ trên xuống dưới theo đúng thứ tự hàng trong Sheet
             for (let i = 0; i < parsedList.length; i++) {
                 let item = parsedList[i];
                 let isDone = item.numTe !== '' && item.numTe !== '00';
                 if (isDone) {
                     doneList.push(item);
+                } else {
+                    // Nếu là hàng có kết quả bằng 00 hoặc rỗng thì lấy làm kỳ dự đoán
+                    pendingKyObj = item;
                 }
             }
+
+            // Trường hợp trong sheet chưa có dòng 00 nào thì lấy dòng tiếp theo
+            let targetPredictKy = pendingKyObj ? pendingKyObj.kyNum : (doneList.length > 0 ? doneList[doneList.length - 1].kyNum + 1 : 1);
 
             let consecutiveMisses = 0;
             for (let i = doneList.length - 1; i >= 0; i--) {
@@ -141,9 +146,8 @@
                 }
             }
 
-            let nextKyNum = maxKyNum + 1;
-            let kyStrNext = String(nextKyNum).padStart(3, '0');
-            let predictNext = getPredictColorsForKy(nextKyNum);
+            let kyStrNext = String(targetPredictKy).padStart(3, '0');
+            let predictNext = getPredictColorsForKy(targetPredictKy);
             let formatPredictNext = '【' + predictNext.join('') + '】';
 
             let htmlNextKy = `<p style="margin-bottom:20px;font-family:-apple-system-font,'Helvetica Neue',sans-serif;font-size:18px;"><span style="color:#008000;">${kyStrNext}期:▽2波中特▽</span><span style="color:rgb(51,51,51);">${formatPredictNext}</span><span style="color:rgb(255,0,0);">开:？00中</span></p>`;
@@ -151,10 +155,8 @@
             let finalOutputs = [];
 
             if (consecutiveMisses >= 3) {
-                let nextKyNum2 = nextKyNum + 1;
-                let nextKyNum3 = nextKyNum + 2;
-                let kyStr2 = String(nextKyNum2).padStart(3, '0');
-                let kyStr3 = String(nextKyNum3).padStart(3, '0');
+                let kyStr2 = String(targetPredictKy + 1).padStart(3, '0');
+                let kyStr3 = String(targetPredictKy + 2).padStart(3, '0');
 
                 let defaultHtml2 = `<p style="margin-bottom:20px;font-family:-apple-system-font,'Helvetica Neue',sans-serif;font-size:18px;"><span style="color:#008000;">${kyStr2}期:▽2波中特▽</span><span style="color:rgb(51,51,51);">【發發發發】</span><span style="color:rgb(255,0,0);">开:？00中</span></p>`;
                 let defaultHtml3 = `<p style="margin-bottom:20px;font-family:-apple-system-font,'Helvetica Neue',sans-serif;font-size:18px;"><span style="color:#008000;">${kyStr3}期:▽2波中特▽</span><span style="color:rgb(51,51,51);">【發發發發】</span><span style="color:rgb(255,0,0);">开:？00中</span></p>`;
@@ -193,7 +195,7 @@
 
                 while (finalOutputs.length < 3) {
                     let extraOffset = finalOutputs.length;
-                    let extraKyNum = nextKyNum + extraOffset;
+                    let extraKyNum = targetPredictKy + extraOffset;
                     let extraKyStr = String(extraKyNum).padStart(3, '0');
                     let defaultHtmlExtra = `<p style="margin-bottom:20px;font-family:-apple-system-font,'Helvetica Neue',sans-serif;font-size:18px;"><span style="color:#008000;">${extraKyStr}期:▽2波中特▽</span><span style="color:rgb(51,51,51);">【發發發發】</span><span style="color:rgb(255,0,0);">开:？00中</span></p>`;
                     finalOutputs.unshift(defaultHtmlExtra);
