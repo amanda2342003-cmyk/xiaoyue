@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳门六合彩『前后六肖』一夜暴富！</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 5px;
+            background-color: #fff;
+            color: #000;
+        }
+        .content {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .win-animal {
+            color: #FF0000;
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+
+<div id="content-container" class="content"></div>
+
+<script>
+    const SPREADSHEET_ID = '19wtMwveTJ_eW09pp7ANQj1NkLNbHIA4kWLsoNAk5Xd8';
+    const SHEET_NAME_KQ = 'KQ_AOMEN';
+    const SHEET_NAME_DULIEU = 'DULIEU';
+
+    const URL_KQ = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_KQ}&_=${Date.now()}`;
+    const URL_DULIEU = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_DULIEU}&_=${Date.now()}`;
+
+    let duLieuMap = {};
+
+    const QIAN_XIAO = ["鼠", "牛", "虎", "兔", "龙", "蛇"];
+    const HOU_XIAO = ["马", "羊", "猴", "鸡", "狗", "猪"];
+
+    const STATIC_PREDICTIONS = {
+        1: "后肖", 2: "前肖", 3: "前肖", 4: "后肖", 5: "后肖", 6: "前肖", 7: "前肖", 8: "后肖", 9: "后肖", 10: "前肖",
+        11: "前肖", 12: "后肖", 13: "前肖", 14: "前肖", 15: "后肖", 16: "后肖", 17: "前肖", 18: "后肖", 19: "后肖", 20: "前肖",
+        21: "后肖", 22: "前肖", 23: "后肖", 24: "前肖", 25: "后肖", 26: "后肖", 27: "前肖", 28: "后肖", 29: "前肖", 30: "后肖",
+        31: "后肖", 32: "前肖", 33: "前肖", 34: "后肖", 35: "前肖", 36: "前肖", 37: "后肖", 38: "后肖", 39: "前肖", 40: "后肖",
+        41: "后肖", 42: "前肖", 43: "前肖", 44: "后肖", 45: "后肖", 46: "前肖", 47: "前肖", 48: "后肖", 49: "前肖", 50: "后肖",
+        51: "前肖", 52: "后肖", 53: "后肖", 54: "前肖", 55: "后肖", 56: "后肖", 57: "前肖", 58: "前肖", 59: "后肖", 60: "前肖",
+        61: "前肖", 62: "后肖", 63: "后肖", 64: "前肖", 65: "后肖", 66: "后肖", 67: "前肖", 68: "前肖", 69: "后肖", 70: "前肖",
+        71: "后肖", 72: "后肖", 73: "前肖", 74: "后肖", 75: "前肖", 76: "前肖", 77: "后肖", 78: "前肖", 79: "前肖", 80: "后肖",
+        81: "前肖", 82: "后肖", 83: "前肖", 84: "后肖", 85: "前肖", 86: "前肖", 87: "后肖", 88: "前肖", 89: "前肖", 90: "后肖",
+        91: "前肖", 92: "后肖", 93: "前肖", 94: "前肖", 95: "后肖", 96: "前肖", 97: "后肖", 98: "前肖", 99: "后肖", 100: "前肖",
+        101: "后肖", 102: "后肖", 103: "前肖", 104: "前肖", 105: "后肖", 106: "后肖", 107: "前肖", 108: "前肖", 109: "后肖", 110: "后肖",
+        111: "前肖", 112: "前肖", 113: "后肖", 114: "前肖", 115: "前肖", 116: "后肖", 117: "后肖", 118: "前肖", 119: "前肖", 120: "后肖",
+        121: "后肖", 122: "前肖", 123: "后肖", 124: "后肖", 125: "前肖", 126: "后肖", 127: "后肖", 128: "前肖", 129: "前肖", 130: "后肖",
+        131: "前肖", 132: "前肖", 133: "后肖", 134: "后肖", 135: "前肖", 136: "后肖", 137: "后肖", 138: "前肖", 139: "后肖", 140: "前肖",
+        141: "前肖", 142: "后肖", 143: "前肖", 144: "前肖", 145: "后肖", 146: "前肖", 147: "后肖", 148: "前肖", 149: "后肖", 150: "后肖",
+        151: "前肖", 152: "后肖", 153: "前肖", 154: "后肖", 155: "前肖", 156: "前肖", 157: "后肖", 158: "前肖", 159: "前肖", 160: "后肖",
+        161: "前肖", 162: "后肖", 163: "后肖", 164: "前肖", 165: "前肖", 166: "后肖", 167: "后肖", 168: "前肖", 169: "前肖", 170: "后肖",
+        171: "前肖", 172: "前肖", 173: "后肖", 174: "前肖", 175: "后肖", 176: "前肖", 177: "前肖", 178: "后肖", 179: "前肖", 180: "前肖",
+        181: "后肖", 182: "前肖", 183: "前肖", 184: "后肖", 185: "前肖", 186: "后肖", 187: "前肖", 188: "前肖", 189: "后肖", 190: "后肖",
+        191: "前肖", 192: "后肖", 193: "后肖", 194: "前肖", 195: "前肖", 196: "后肖", 197: "前肖", 198: "后肖", 199: "后肖", 200: "前肖",
+        201: "后肖", 202: "前肖", 203: "后肖", 204: "后肖", 205: "前肖", 206: "前肖", 207: "后肖", 208: "后肖", 209: "前肖", 210: "后肖",
+        211: "前肖", 212: "前肖", 213: "后肖", 214: "前肖", 215: "后肖", 216: "后肖", 217: "前肖", 218: "后肖", 219: "前肖", 220: "后肖",
+        221: "后肖", 222: "前肖", 223: "后肖", 224: "后肖", 225: "前肖", 226: "前肖", 227: "后肖", 228: "后肖", 229: "前肖", 230: "后肖",
+        231: "前肖", 232: "前肖", 233: "后肖", 234: "后肖", 235: "前肖", 236: "前肖", 237: "后肖", 238: "前肖", 239: "前肖", 240: "后肖",
+        241: "后肖", 242: "前肖", 243: "前肖", 244: "后肖", 245: "后肖", 246: "前肖", 247: "前肖", 248: "后肖", 249: "前肖", 250: "后肖",
+        251: "前肖", 252: "后肖", 253: "前肖", 254: "后肖", 255: "前肖", 256: "前肖", 257: "后肖", 258: "后肖", 259: "前肖", 260: "前肖",
+        261: "后肖", 262: "前肖", 263: "后肖", 264: "前肖", 265: "前肖", 266: "后肖", 267: "前肖", 268: "前肖", 269: "后肖", 270: "后肖",
+        271: "前肖", 272: "前肖", 273: "后肖", 274: "前肖", 275: "后肖", 276: "后肖", 277: "前肖", 278: "后肖", 279: "前肖", 280: "前肖",
+        281: "后肖", 282: "前肖", 283: "前肖", 284: "后肖", 285: "后肖", 286: "前肖", 287: "后肖", 288: "前肖", 289: "后肖", 290: "前肖",
+        291: "前肖", 292: "后肖", 293: "前肖", 294: "后肖", 295: "前肖", 296: "后肖", 297: "前肖", 298: "后肖", 299: "后肖", 300: "前肖",
+        301: "后肖", 302: "后肖", 303: "前肖", 304: "前肖", 305: "后肖", 306: "后肖", 307: "前肖", 308: "后肖", 309: "后肖", 310: "前肖",
+        311: "后肖", 312: "后肖", 313: "前肖", 314: "后肖", 315: "前肖", 316: "前肖", 317: "后肖", 318: "后肖", 319: "前肖", 320: "后肖",
+        321: "后肖", 322: "前肖", 323: "前肖", 324: "后肖", 325: "后肖", 326: "前肖", 327: "后肖", 328: "后肖", 329: "前肖", 330: "前肖",
+        331: "后肖", 332: "后肖", 333: "前肖", 334: "后肖", 335: "后肖", 336: "前肖", 337: "前肖", 338: "后肖", 339: "前肖", 340: "前肖",
+        341: "后肖", 342: "后肖", 343: "前肖", 344: "后肖", 345: "后肖", 346: "前肖", 347: "前肖", 348: "后肖", 349: "后肖", 350: "前肖",
+        351: "后肖", 352: "前肖", 353: "前肖", 354: "后肖", 355: "后肖", 356: "前肖", 357: "前肖", 358: "后肖", 359: "前肖", 360: "前肖",
+        361: "后肖", 362: "前肖", 363: "后肖", 364: "前肖", 365: "后肖"
+    };
+
+    function fetchJSONP(url) {
+        return fetch(url)
+            .then(res => res.text())
+            .then(text => {
+                const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+                if (match && match[1]) return JSON.parse(match[1]);
+                throw new Error(" ");
+            });
+    }
+
+    function getPredictDanShuangForKy(kyNum) {
+        if (STATIC_PREDICTIONS[kyNum]) {
+            return STATIC_PREDICTIONS[kyNum];
+        }
+        let cycle = Math.floor((kyNum - 1) / 2);
+        return cycle % 2 === 0 ? "前肖" : "后肖";
+    }
+
+    function getDanShuangByNum(numStr, animal) {
+        if (QIAN_XIAO.includes(animal)) return "前肖";
+        if (HOU_XIAO.includes(animal)) return "后肖";
+        return "";
+    }
+
+    function formatTwoDigits(val) {
+        let num = parseInt(String(val).replace(/\D/g, ''), 10);
+        if (isNaN(num)) return '';
+        return String(num).padStart(2, '0');
+    }
+
+    function formatThreeDigits(val) {
+        let num = parseInt(String(val).replace(/\D/g, ''), 10);
+        if (isNaN(num)) return '001';
+        return String(num).padStart(3, '0');
+    }
+
+    async function initPredict() {
+        try {
+            const rawRules = await fetchJSONP(URL_DULIEU);
+            if (rawRules.table && rawRules.table.rows) {
+                rawRules.table.rows.forEach(r => {
+                    if (r.c && r.c[0] && r.c[0].v !== null && r.c[0].v !== undefined) {
+                        let formattedNum = formatTwoDigits(r.c[0].v);
+                        let animal = (r.c[1] && r.c[1].v !== null && r.c[1].v !== undefined) ? String(r.c[1].v).trim() : '';
+                        if (formattedNum && animal) {
+                            duLieuMap[formattedNum] = animal;
+                        }
+                    }
+                });
+            }
+
+            const rawKQ = await fetchJSONP(URL_KQ);
+            const rows = rawKQ.table.rows;
+            let parsedList = [];
+
+            if (rows) {
+                for (let i = 0; i < rows.length; i++) {
+                    const r = rows[i].c;
+                    if (!r || !r[0] || r[0].v === null || r[0].v === undefined) continue;
+                    
+                    let kyRaw = String(r[0].v).trim();
+                    let kyOnlyNum = parseInt(kyRaw.replace(/\D/g, ''), 10) || 0;
+                    
+                    let numTeFormatted = '';
+                    if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '') {
+                        numTeFormatted = formatTwoDigits(r[7].v);
+                    }
+
+                    if (kyOnlyNum > 0) {
+                        parsedList.push({
+                            kyNum: kyOnlyNum,
+                            numTe: numTeFormatted
+                        });
+                    }
+                }
+            }
+
+            let doneList = [];
+            let pendingKyObj = null;
+
+            for (let i = 0; i < parsedList.length; i++) {
+                let item = parsedList[i];
+                let isNotDone = item.numTe === '' || item.numTe === '0' || item.numTe === '00';
+                if (!isNotDone) {
+                    doneList.push(item);
+                } else {
+                    pendingKyObj = item;
+                }
+            }
+
+            // Logic tính kỳ cần dự đoán
+            let targetPredictKy = 1;
+            if (pendingKyObj) {
+                targetPredictKy = pendingKyObj.kyNum;
+            } else if (doneList.length > 0) {
+                targetPredictKy = doneList[doneList.length - 1].kyNum + 1;
+            }
+
+            // Đánh giá tất cả các kỳ đã ra kết quả (Thắng / Thua)
+            let evaluatedDoneList = [];
+            for (let i = 0; i < doneList.length; i++) {
+                let item = doneList[i];
+                let predicted = getPredictDanShuangForKy(item.kyNum);
+                let animal = duLieuMap[item.numTe] || '';
+                let actual = getDanShuangByNum(item.numTe, animal);
+                let isValidNum = duLieuMap.hasOwnProperty(item.numTe);
+                let isWin = isValidNum && actual && (predicted === actual);
+                evaluatedDoneList.push({ item, isWin });
+            }
+
+            // Kiểm tra chuỗi thua 3 kỳ liên tiếp gần nhất
+            let checkLatestMisses = 0;
+            for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                if (!evaluatedDoneList[i].isWin) {
+                    checkLatestMisses++;
+                } else {
+                    break;
+                }
+            }
+
+            // Tìm điểm cắt lịch sử nếu trong quá khứ có 3 kỳ thua liên tiếp
+            let cutoffIndex = 0;
+            if (checkLatestMisses < 3) {
+                let consecutiveMisses = 0;
+                for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                    if (!evaluatedDoneList[i].isWin) {
+                        consecutiveMisses++;
+                        if (consecutiveMisses >= 3) {
+                            cutoffIndex = i + 1;
+                            break;
+                        }
+                    } else {
+                        consecutiveMisses = 0;
+                    }
+                }
+            } else {
+                // Nếu 3 kỳ gần đây nhất bị thua hoàn toàn -> Xóa toàn bộ lịch sử trước đó
+                cutoffIndex = evaluatedDoneList.length;
+            }
+
+            // Tạo chuỗi HTML cho kỳ dự đoán tiếp theo
+            let nextKyNum = targetPredictKy;
+            let predictNext = getPredictDanShuangForKy(nextKyNum);
+            let kyStrNext = formatThreeDigits(nextKyNum);
+            let htmlNextKy = `<p style="font-size:14pt;">${kyStrNext}期：【前后六肖】<span style="color:rgb(255,0,0);">【${predictNext}】</span>开<span style="color:#ff0000;">？00准</span></p>`;
+
+            // Lấy danh sách lịch sử kỳ TRÚNG (sau mốc cắt cutoffIndex)
+            let historyOutputs = [];
+            if (checkLatestMisses < 3) {
+                for (let i = cutoffIndex; i < evaluatedDoneList.length; i++) {
+                    let evalItem = evaluatedDoneList[i];
+                    let item = evalItem.item;
+                    let predicted = getPredictDanShuangForKy(item.kyNum);
+                    let shengXiaoWin = duLieuMap[item.numTe] || '';
+                    
+                    if (evalItem.isWin) {
+                        let resStrWin = shengXiaoWin + item.numTe + '准';
+                        let kyStr = formatThreeDigits(item.kyNum);
+                        let formattedPredictHtml = `<span style="color:rgb(255,0,0);">【<span style="color:#FF0000; background-color:yellow;">${predicted}</span>】</span>`;
+                        historyOutputs.push(`<p style="font-size:14pt;">${kyStr}期：【前后六肖】${formattedPredictHtml}开<span style="color:#ff0000;">${resStrWin}</span></p>`);
+                    }
+                }
+            }
+
+            historyOutputs.reverse();
+
+            let finalOutputs = [htmlNextKy, ...historyOutputs];
+
+            // Nếu lịch sử bị xóa sạch (hoặc ít hơn 3 dòng) -> tự động chèn các kỳ mặc định 【發發】
+            let currentCount = finalOutputs.length;
+            if (currentCount === 1) {
+                let kyStr1 = formatThreeDigits(nextKyNum + 1);
+                let kyStr2 = formatThreeDigits(nextKyNum + 2);
+                let defaultHtml1 = `<p style="font-size:14pt;">${kyStr1}期：【前后六肖】<span style="color:rgb(255,0,0);">【發發】</span>开<span style="color:#ff0000;">？00准</span></p>`;
+                let defaultHtml2 = `<p style="font-size:14pt;">${kyStr2}期：【前后六肖】<span style="color:rgb(255,0,0);">【發發】</span>开<span style="color:#ff0000;">？00准</span></p>`;
+                finalOutputs.unshift(defaultHtml1);
+                finalOutputs.unshift(defaultHtml2);
+            } else if (currentCount === 2) {
+                let kyStrExtra = formatThreeDigits(nextKyNum + 1);
+                let defaultHtmlExtra = `<p style="font-size:14pt;">${kyStrExtra}期：【前后六肖】<span style="color:rgb(255,0,0);">【發發】</span>开<span style="color:#ff0000;">？00准</span></p>`;
+                finalOutputs.unshift(defaultHtmlExtra);
+            }
+
+            document.getElementById('content-container').innerHTML = finalOutputs.join('');
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('content-container').innerHTML = ' ';
+        }
+    }
+    initPredict();
+</script>
+
+</body>
+</html>
