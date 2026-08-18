@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳门六合彩【左右六肖】坚持不懈！</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 5px;
+            background-color: #fff;
+            color: #000;
+        }
+        .content {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .win-animal {
+            color: #FF0000;
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+
+<div id="content-container" class="content"></div>
+
+<script>
+    const SPREADSHEET_ID = '19wtMwveTJ_eW09pp7ANQj1NkLNbHIA4kWLsoNAk5Xd8';
+    const SHEET_NAME_KQ = 'KQ_AOMEN';
+    const SHEET_NAME_DULIEU = 'DULIEU';
+
+    const URL_KQ = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_KQ}&_=${Date.now()}`;
+    const URL_DULIEU = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_DULIEU}&_=${Date.now()}`;
+
+    let duLieuMap = {};
+
+    const ZUO_BIAN = ["牛", "鼠", "鸡", "猴", "蛇", "龙"];
+    const YOU_BIAN = ["猪", "狗", "羊", "马", "虎", "兔"];
+
+    const STATIC_PREDICTIONS = {
+        1: "右边", 2: "左边", 3: "左边", 4: "右边", 5: "右边", 6: "左边", 7: "左边", 8: "右边", 9: "右边", 10: "左边",
+        11: "左边", 12: "右边", 13: "左边", 14: "左边", 15: "右边", 16: "右边", 17: "左边", 18: "右边", 19: "右边", 20: "左边",
+        21: "右边", 22: "左边", 23: "右边", 24: "左边", 25: "右边", 26: "右边", 27: "左边", 28: "右边", 29: "左边", 30: "右边",
+        31: "右边", 32: "左边", 33: "左边", 34: "右边", 35: "左边", 36: "左边", 37: "右边", 38: "右边", 39: "左边", 40: "右边",
+        41: "右边", 42: "左边", 43: "左边", 44: "右边", 45: "右边", 46: "左边", 47: "左边", 48: "右边", 49: "左边", 50: "右边",
+        51: "左边", 52: "右边", 53: "右边", 54: "左边", 55: "右边", 56: "右边", 57: "左边", 58: "左边", 59: "右边", 60: "左边",
+        61: "左边", 62: "右边", 63: "右边", 64: "左边", 65: "右边", 66: "右边", 67: "左边", 68: "左边", 69: "右边", 70: "左边",
+        71: "右边", 72: "右边", 73: "左边", 74: "右边", 75: "左边", 76: "左边", 77: "右边", 78: "左边", 79: "左边", 80: "右边",
+        81: "左边", 82: "右边", 83: "左边", 84: "右边", 85: "左边", 86: "左边", 87: "右边", 88: "左边", 89: "左边", 90: "右边",
+        91: "左边", 92: "右边", 93: "左边", 94: "左边", 95: "右边", 96: "左边", 97: "右边", 98: "左边", 99: "右边", 100: "左边",
+        101: "右边", 102: "右边", 103: "左边", 104: "左边", 105: "右边", 106: "右边", 107: "左边", 108: "左边", 109: "右边", 110: "右边",
+        111: "左边", 112: "左边", 113: "右边", 114: "左边", 115: "左边", 116: "右边", 117: "右边", 118: "左边", 119: "左边", 120: "右边",
+        121: "右边", 122: "左边", 123: "右边", 124: "右边", 125: "左边", 126: "右边", 127: "右边", 128: "左边", 129: "左边", 130: "右边",
+        131: "左边", 132: "左边", 133: "右边", 134: "右边", 135: "左边", 136: "右边", 137: "右边", 138: "左边", 139: "右边", 140: "左边",
+        141: "左边", 142: "右边", 143: "左边", 144: "左边", 145: "右边", 146: "左边", 147: "右边", 148: "左边", 149: "右边", 150: "右边",
+        151: "左边", 152: "右边", 153: "左边", 154: "右边", 155: "左边", 156: "左边", 157: "右边", 158: "左边", 159: "左边", 160: "右边",
+        161: "左边", 162: "右边", 163: "右边", 164: "左边", 165: "左边", 166: "右边", 167: "右边", 168: "左边", 169: "左边", 170: "右边",
+        171: "左边", 172: "左边", 173: "右边", 174: "左边", 175: "右边", 176: "左边", 177: "左边", 178: "右边", 179: "左边", 180: "左边",
+        181: "右边", 182: "左边", 183: "左边", 184: "右边", 185: "左边", 186: "右边", 187: "左边", 188: "左边", 189: "右边", 190: "右边",
+        191: "左边", 192: "右边", 193: "右边", 194: "左边", 195: "左边", 196: "右边", 197: "左边", 198: "右边", 199: "右边", 200: "左边",
+        201: "右边", 202: "左边", 203: "右边", 204: "右边", 205: "左边", 206: "左边", 207: "右边", 208: "右边", 209: "左边", 210: "右边",
+        211: "左边", 212: "左边", 213: "右边", 214: "左边", 215: "右边", 216: "右边", 217: "左边", 218: "右边", 219: "左边", 220: "右边",
+        221: "右边", 222: "左边", 223: "右边", 224: "右边", 225: "左边", 226: "左边", 227: "右边", 228: "右边", 229: "左边", 230: "右边",
+        231: "左边", 232: "左边", 233: "右边", 234: "右边", 235: "左边", 236: "左边", 237: "右边", 238: "左边", 239: "左边", 240: "右边",
+        241: "右边", 242: "左边", 243: "左边", 244: "右边", 245: "右边", 246: "左边", 247: "左边", 248: "右边", 249: "左边", 250: "右边",
+        251: "左边", 252: "右边", 253: "左边", 254: "右边", 255: "左边", 256: "左边", 257: "右边", 258: "右边", 259: "左边", 260: "左边",
+        261: "右边", 262: "左边", 263: "右边", 264: "左边", 265: "左边", 266: "右边", 267: "左边", 268: "左边", 269: "右边", 270: "右边",
+        271: "左边", 272: "左边", 273: "右边", 274: "左边", 275: "右边", 276: "右边", 277: "左边", 278: "右边", 279: "左边", 280: "左边",
+        281: "右边", 282: "左边", 283: "左边", 284: "右边", 285: "右边", 286: "左边", 287: "右边", 288: "左边", 289: "右边", 290: "左边",
+        291: "左边", 292: "右边", 293: "左边", 294: "右边", 295: "左边", 296: "右边", 297: "左边", 298: "右边", 299: "右边", 300: "左边",
+        301: "右边", 302: "右边", 303: "左边", 304: "左边", 305: "右边", 306: "右边", 307: "左边", 308: "右边", 309: "右边", 310: "左边",
+        311: "右边", 312: "右边", 313: "左边", 314: "右边", 315: "左边", 316: "左边", 317: "右边", 318: "右边", 319: "左边", 320: "右边",
+        321: "右边", 322: "左边", 323: "左边", 324: "右边", 325: "右边", 326: "左边", 327: "右边", 328: "右边", 329: "左边", 330: "左边",
+        331: "右边", 332: "右边", 333: "左边", 334: "右边", 335: "右边", 336: "左边", 337: "左边", 338: "右边", 339: "左边", 340: "左边",
+        341: "右边", 342: "右边", 343: "左边", 344: "右边", 345: "右边", 346: "左边", 347: "左边", 348: "右边", 349: "右边", 350: "左边",
+        351: "右边", 352: "左边", 353: "左边", 354: "右边", 355: "右边", 356: "左边", 357: "左边", 358: "右边", 359: "左边", 360: "左边",
+        361: "右边", 362: "左边", 363: "右边", 364: "左边", 365: "右边"
+    };
+
+    function fetchJSONP(url) {
+        return fetch(url)
+            .then(res => res.text())
+            .then(text => {
+                const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+                if (match && match[1]) return JSON.parse(match[1]);
+                throw new Error("");
+            });
+    }
+
+    function getPredictDanShuangForKy(kyNum) {
+        if (STATIC_PREDICTIONS[kyNum]) {
+            return STATIC_PREDICTIONS[kyNum];
+        }
+        let cycle = Math.floor((kyNum - 1) / 2);
+        return cycle % 2 === 0 ? "左边" : "右边";
+    }
+
+    function getDanShuangByNum(numStr, animal) {
+        if (ZUO_BIAN.includes(animal)) return "左边";
+        if (YOU_BIAN.includes(animal)) return "右边";
+        return "";
+    }
+
+    function formatTwoDigits(val) {
+        let num = parseInt(String(val).replace(/\D/g, ''), 10);
+        if (isNaN(num)) return '';
+        return String(num).padStart(2, '0');
+    }
+
+    function formatThreeDigits(val) {
+        let num = parseInt(String(val).replace(/\D/g, ''), 10);
+        if (isNaN(num)) return '001';
+        return String(num).padStart(3, '0');
+    }
+
+    async function initPredict() {
+        try {
+            const rawRules = await fetchJSONP(URL_DULIEU);
+            if (rawRules.table && rawRules.table.rows) {
+                rawRules.table.rows.forEach(r => {
+                    if (r.c && r.c[0] && r.c[0].v !== null && r.c[0].v !== undefined) {
+                        let formattedNum = formatTwoDigits(r.c[0].v);
+                        let animal = (r.c[1] && r.c[1].v !== null && r.c[1].v !== undefined) ? String(r.c[1].v).trim() : '';
+                        if (formattedNum && animal) {
+                            duLieuMap[formattedNum] = animal;
+                        }
+                    }
+                });
+            }
+
+            const rawKQ = await fetchJSONP(URL_KQ);
+            const rows = rawKQ.table.rows;
+            let parsedList = [];
+
+            if (rows) {
+                for (let i = 0; i < rows.length; i++) {
+                    const r = rows[i].c;
+                    if (!r || !r[0] || r[0].v === null || r[0].v === undefined) continue;
+                    
+                    let kyRaw = String(r[0].v).trim();
+                    let kyOnlyNum = parseInt(kyRaw.replace(/\D/g, ''), 10) || 0;
+                    
+                    let numTeFormatted = '';
+                    if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '') {
+                        numTeFormatted = formatTwoDigits(r[7].v);
+                    }
+
+                    if (kyOnlyNum > 0) {
+                        parsedList.push({
+                            kyNum: kyOnlyNum,
+                            numTe: numTeFormatted
+                        });
+                    }
+                }
+            }
+
+            let doneList = [];
+            let pendingKyObj = null;
+
+            for (let i = 0; i < parsedList.length; i++) {
+                let item = parsedList[i];
+                let isNotDone = item.numTe === '' || item.numTe === '0' || item.numTe === '00';
+                if (!isNotDone) {
+                    doneList.push(item);
+                } else {
+                    pendingKyObj = item;
+                }
+            }
+
+            let targetPredictKy = 1;
+            if (pendingKyObj) {
+                targetPredictKy = pendingKyObj.kyNum;
+            } else if (doneList.length > 0) {
+                targetPredictKy = doneList[doneList.length - 1].kyNum + 1;
+            }
+
+            let evaluatedDoneList = [];
+            for (let i = 0; i < doneList.length; i++) {
+                let item = doneList[i];
+                let predicted = getPredictDanShuangForKy(item.kyNum);
+                let animal = duLieuMap[item.numTe] || '';
+                let actual = getDanShuangByNum(item.numTe, animal);
+                let isValidNum = duLieuMap.hasOwnProperty(item.numTe);
+                let isWin = isValidNum && actual && (predicted === actual);
+                evaluatedDoneList.push({ item, isWin });
+            }
+
+            let checkLatestMisses = 0;
+            for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                if (!evaluatedDoneList[i].isWin) {
+                    checkLatestMisses++;
+                } else {
+                    break;
+                }
+            }
+
+            let cutoffIndex = 0;
+            if (checkLatestMisses < 3) {
+                let consecutiveMisses = 0;
+                for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                    if (!evaluatedDoneList[i].isWin) {
+                        consecutiveMisses++;
+                        if (consecutiveMisses >= 3) {
+                            cutoffIndex = i + 1;
+                            break;
+                        }
+                    } else {
+                        consecutiveMisses = 0;
+                    }
+                }
+            } else {
+                cutoffIndex = evaluatedDoneList.length;
+            }
+
+            let nextKyNum = targetPredictKy;
+            let predictNext = getPredictDanShuangForKy(nextKyNum);
+            let kyStrNext = formatThreeDigits(nextKyNum);
+            let htmlNextKy = `<pre style="font-size:16px;font-family:Arial,Helvetica,sans-serif;margin-bottom:20px;">${kyStrNext}期:╋左右六肖【<span style="color:#ff0000;">${predictNext}</span>】开:<span style="color:#ff0000;">？00准</span></pre>`;
+
+            let historyOutputs = [];
+            if (checkLatestMisses < 3) {
+                for (let i = cutoffIndex; i < evaluatedDoneList.length; i++) {
+                    let evalItem = evaluatedDoneList[i];
+                    let item = evalItem.item;
+                    let predicted = getPredictDanShuangForKy(item.kyNum);
+                    let shengXiaoWin = duLieuMap[item.numTe] || '';
+                    
+                    if (evalItem.isWin) {
+                        let resStrWin = shengXiaoWin + item.numTe + '准';
+                        let kyStr = formatThreeDigits(item.kyNum);
+                        let formattedPredictHtml = `<span style="color:#FF0000; background-color:yellow;">${predicted}</span>`;
+                        historyOutputs.push(`<pre style="font-size:16px;font-family:Arial,Helvetica,sans-serif;margin-bottom:20px;">${kyStr}期:╋左右六肖【${formattedPredictHtml}】开:<span style="color:#ff0000;">${resStrWin}</span></pre>`);
+                    }
+                }
+            }
+
+            historyOutputs.reverse();
+
+            let finalOutputs = [htmlNextKy, ...historyOutputs];
+
+            let currentCount = finalOutputs.length;
+            if (currentCount === 1) {
+                let kyStr1 = formatThreeDigits(nextKyNum + 1);
+                let kyStr2 = formatThreeDigits(nextKyNum + 2);
+                let defaultHtml1 = `<pre style="font-size:16px;font-family:Arial,Helvetica,sans-serif;margin-bottom:20px;">${kyStr1}期:╋左右六肖【<span style="color:#ff0000;">發發</span>】开:<span style="color:#ff0000;">？00准</span></pre>`;
+                let defaultHtml2 = `<pre style="font-size:16px;font-family:Arial,Helvetica,sans-serif;margin-bottom:20px;">${kyStr2}期:╋左右六肖【<span style="color:#ff0000;">發發</span>】开:<span style="color:#ff0000;">？00准</span></pre>`;
+                finalOutputs.unshift(defaultHtml1);
+                finalOutputs.unshift(defaultHtml2);
+            } else if (currentCount === 2) {
+                let kyStrExtra = formatThreeDigits(nextKyNum + 1);
+                let defaultHtmlExtra = `<pre style="font-size:16px;font-family:Arial,Helvetica,sans-serif;margin-bottom:20px;">${kyStrExtra}期:╋左右六肖【<span style="color:#ff0000;">發發</span>】开:<span style="color:#ff0000;">？00准</span></pre>`;
+                finalOutputs.unshift(defaultHtmlExtra);
+            }
+
+            document.getElementById('content-container').innerHTML = finalOutputs.join('');
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('content-container').innerHTML = '';
+        }
+    }
+    initPredict();
+</script>
+
+</body>
+</html>
