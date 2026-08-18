@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>门六合彩【家野中特】稳定资料！</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 5px;
+            background-color: #fff;
+            color: #000;
+        }
+        .content {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .win-animal {
+            color: #FF0000;
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+
+<div id="content-container" class="content"></div>
+
+<script>
+    const SPREADSHEET_ID = '19wtMwveTJ_eW09pp7ANQj1NkLNbHIA4kWLsoNAk5Xd8';
+    const SHEET_NAME_KQ = 'KQ_AOMEN';
+    const SHEET_NAME_DULIEU = 'DULIEU';
+
+    const URL_KQ = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_KQ}&_=${Date.now()}`;
+    const URL_DULIEU = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_DULIEU}&_=${Date.now()}`;
+
+    let duLieuMap = {};
+
+    const JIA_QIN = ["牛", "马", "羊", "鸡", "狗", "猪"];
+    const YE_SHOU = ["鼠", "虎", "兔", "龙", "蛇", "猴"];
+
+    const STATIC_PREDICTIONS = {
+       1: "野兽+狗猪", 2: "野兽+牛马", 3: "家禽+龙猴", 4: "家禽+蛇虎", 5: "野兽+牛鸡", 6: "家禽+龙猴", 7: "野兽+狗马", 8: "野兽+羊猪", 9: "家禽+兔蛇", 10: "野兽+鸡牛", 11: "野兽+羊狗", 12: "家禽+龙虎", 13: "野兽+牛猪", 14: "家禽+鼠猴", 15: "家禽+蛇虎", 16: "野兽+羊鸡", 17: "野兽+牛猪", 18: "家禽+兔鼠", 19: "家禽+龙猴", 20: "野兽+牛马", 21: "家禽+鼠蛇", 22: "野兽+猪鸡", 23: "家禽+龙虎", 24: "家禽+蛇猴", 25: "野兽+牛狗", 26: "家禽+兔鼠", 27: "家禽+虎蛇", 28: "野兽+猪狗", 29: "家禽+鼠龙", 30: "家禽+虎兔", 31: "野兽+鸡马", 32: "家禽+猴龙", 33: "野兽+牛狗", 34: "家禽+虎兔", 35: "家禽+鼠猴", 36: "野兽+猪鸡", 37: "野兽+狗马", 38: "家禽+龙猴", 39: "野兽+鸡羊", 40: "家禽+鼠蛇", 41: "野兽+猪狗", 42: "野兽+牛马", 43: "家禽+龙猴", 44: "野兽+猪鸡", 45: "野兽+马羊", 46: "家禽+鼠猴", 47: "野兽+牛鸡", 48: "野兽+猪羊", 49: "家禽+鼠龙", 50: "家禽+兔猴", 51: "野兽+狗猪", 52: "家禽+鼠蛇", 53: "家禽+龙兔", 54: "野兽+鸡狗", 55: "家禽+虎猴", 56: "野兽+猪羊", 57: "野兽+牛马", 58: "家禽+鼠猴", 59: "野兽+羊猪", 60: "家禽+兔蛇", 61: "野兽+马牛", 62: "家禽+猴龙", 63: "家禽+鼠兔", 64: "野兽+牛羊", 65: "家禽+龙猴", 66: "家禽+虎兔", 67: "野兽+羊狗", 68: "野兽+鸡猪", 69: "家禽+虎猴", 70: "野兽+羊牛", 71: "野兽+猪狗", 72: "家禽+虎兔", 73: "家禽+蛇龙", 74: "野兽+牛马", 75: "家禽+虎猴", 76: "野兽+羊猪", 77: "野兽+鸡马", 78: "家禽+虎蛇", 79: "家禽+龙鼠", 80: "野兽+狗牛", 81: "家禽+猴虎", 82: "野兽+马羊", 83: "家禽+龙鼠", 84: "家禽+兔蛇", 85: "野兽+羊牛", 86: "野兽+猪鸡", 87: "家禽+鼠兔", 88: "家禽+蛇虎", 89: "野兽+狗马", 90: "家禽+猴龙", 91: "家禽+兔蛇", 92: "野兽+鸡牛", 93: "野兽+羊猪", 94: "家禽+猴龙", 95: "野兽+牛狗", 96: "野兽+马羊", 97: "家禽+虎鼠", 98: "家禽+蛇猴", 99: "野兽+狗牛", 100: "野兽+马猪", 101: "家禽+鼠蛇", 102: "野兽+牛狗", 103: "家禽+猴虎", 104: "野兽+猪羊", 105: "野兽+狗牛", 106: "家禽+猴虎", 107: "野兽+马羊", 108: "家禽+兔鼠", 109: "野兽+鸡狗", 110: "家禽+蛇猴", 111: "家禽+虎兔", 112: "野兽+马狗", 113: "家禽+猴龙", 114: "野兽+羊牛", 115: "家禽+蛇兔", 116: "家禽+龙猴", 117: "野兽+猪狗", 118: "家禽+兔蛇", 119: "野兽+鸡马", 120: "家禽+虎猴", 121: "野兽+猪狗", 122: "家禽+兔鼠", 123: "野兽+鸡羊", 124: "家禽+龙蛇", 125: "野兽+猪狗", 126: "家禽+鼠虎", 127: "家禽+蛇兔", 128: "野兽+狗牛", 129: "野兽+鸡猪", 130: "家禽+蛇兔", 131: "野兽+马牛", 132: "家禽+龙猴", 133: "家禽+兔蛇", 134: "野兽+羊猪", 135: "家禽+鼠虎", 136: "家禽+猴蛇", 137: "野兽+牛马", 138: "野兽+猪鸡", 139: "家禽+蛇鼠", 140: "野兽+狗牛", 141: "野兽+猪马", 142: "家禽+蛇猴", 143: "家禽+虎兔", 144: "野兽+牛狗", 145: "野兽+羊猪", 146: "家禽+鼠虎", 147: "野兽+鸡狗", 148: "野兽+马牛", 149: "家禽+蛇猴", 150: "家禽+龙鼠", 151: "野兽+鸡羊", 152: "家禽+虎猴", 153: "野兽+狗马", 154: "家禽+龙蛇", 155: "家禽+鼠虎", 156: "野兽+猪鸡", 157: "家禽+龙猴", 158: "家禽+蛇兔", 159: "野兽+羊狗", 160: "野兽+鸡牛", 161: "家禽+鼠龙", 162: "野兽+狗羊", 163: "家禽+虎猴", 164: "野兽+牛鸡", 165: "野兽+狗马", 166: "家禽+蛇虎", 167: "野兽+牛鸡", 168: "野兽+狗猪", 169: "家禽+兔虎", 170: "野兽+马鸡", 171: "家禽+蛇龙", 172: "家禽+猴兔", 173: "野兽+羊猪", 174: "家禽+鼠虎", 175: "野兽+马牛", 176: "野兽+猪狗", 177: "家禽+鼠蛇", 178: "野兽+牛马", 179: "野兽+猪鸡", 180: "家禽+鼠兔", 181: "家禽+龙猴", 182: "野兽+羊马", 183: "家禽+鼠虎", 184: "家禽+蛇兔", 185: "野兽+狗牛", 186: "野兽+鸡羊", 187: "家禽+鼠兔", 188: "野兽+马狗", 189: "野兽+羊鸡", 190: "家禽+龙鼠", 191: "野兽+马牛", 192: "家禽+兔虎", 193: "野兽+鸡猪", 194: "家禽+龙猴", 195: "家禽+蛇虎", 196: "野兽+牛羊", 197: "野兽+狗鸡", 198: "家禽+龙虎", 199: "野兽+牛猪", 200: "家禽+猴鼠", 201: "野兽+鸡羊", 202: "家禽+兔蛇", 203: "家禽+猴鼠", 204: "野兽+牛狗", 205: "野兽+羊鸡", 206: "家禽+龙兔", 207: "家禽+虎鼠", 208: "野兽+狗鸡", 209: "野兽+猪羊", 210: "家禽+虎鼠", 211: "野兽+马牛", 212: "野兽+鸡猪", 213: "家禽+蛇虎", 214: "野兽+羊狗", 215: "野兽+猪牛", 216: "家禽+龙猴", 217: "野兽+羊马", 218: "野兽+猪鸡", 219: "家禽+龙蛇", 220: "家禽+鼠猴", 221: "野兽+狗牛", 222: "野兽+羊鸡", 223: "家禽+猴蛇", 224: "家禽+虎兔", 225: "野兽+猪鸡", 226: "野兽+牛马", 227: "家禽+龙猴", 228: "家禽+蛇虎", 229: "野兽+牛马", 230: "野兽+鸡狗", 231: "家禽+猴龙", 232: "野兽+羊猪", 233: "野兽+狗牛", 234: "家禽+虎蛇", 235: "家禽+龙猴", 236: "野兽+鸡马", 237: "家禽+鼠蛇", 238: "家禽+虎龙", 239: "野兽+猪马", 240: "家禽+蛇兔", 241: "野兽+狗牛", 242: "野兽+猪羊", 243: "家禽+龙鼠", 244: "家禽+兔蛇", 245: "野兽+马狗", 246: "野兽+牛鸡", 247: "家禽+龙蛇", 248: "家禽+虎鼠", 249: "野兽+羊马", 250: "野兽+牛狗", 251: "家禽+兔猴", 252: "家禽+蛇鼠", 253: "野兽+牛鸡", 254: "家禽+龙兔", 255: "野兽+马狗", 256: "野兽+牛猪", 257: "家禽+虎鼠", 258: "野兽+马鸡", 259: "家禽+龙猴", 260: "家禽+兔蛇", 261: "野兽+猪鸡", 262: "家禽+虎鼠", 263: "野兽+牛羊", 264: "家禽+龙猴", 265: "野兽+狗鸡", 266: "野兽+马猪", 267: "家禽+兔蛇", 268: "野兽+牛狗", 269: "家禽+猴鼠", 270: "野兽+羊马", 271: "野兽+猪狗", 272: "家禽+兔鼠", 273: "家禽+蛇虎", 274: "野兽+猪羊", 275: "野兽+马鸡", 276: "家禽+猴龙", 277: "家禽+鼠虎", 278: "野兽+牛羊", 279: "家禽+猴龙", 280: "家禽+虎鼠", 281: "野兽+马羊", 282: "野兽+牛鸡", 283: "家禽+虎猴", 284: "家禽+龙蛇", 285: "野兽+牛鸡", 286: "家禽+虎猴", 287: "家禽+鼠兔", 288: "野兽+马狗", 289: "野兽+鸡猪", 290: "家禽+蛇鼠", 291: "家禽+兔龙", 292: "野兽+鸡牛", 293: "家禽+蛇猴", 294: "野兽+马猪", 295: "野兽+牛狗", 296: "家禽+龙鼠", 297: "家禽+虎猴", 298: "野兽+马鸡", 299: "野兽+牛狗", 300: "家禽+兔虎", 301: "家禽+鼠龙", 302: "家禽+蛇兔", 303: "野兽+鸡羊", 304: "家禽+龙鼠", 305: "家禽+兔蛇", 306: "野兽+马牛", 307: "野兽+狗羊", 308: "家禽+鼠龙", 309: "家禽+兔猴", 310: "野兽+羊猪", 311: "野兽+鸡牛", 312: "家禽+兔猴", 313: "野兽+猪羊", 314: "野兽+马牛", 315: "家禽+龙蛇", 316: "家禽+虎兔", 317: "野兽+羊猪", 318: "家禽+蛇鼠", 319: "野兽+牛鸡", 320: "野兽+猪羊", 321: "家禽+鼠蛇", 322: "家禽+兔猴", 323: "野兽+猪羊", 324: "野兽+鸡马", 325: "家禽+兔鼠", 326: "家禽+蛇虎", 327: "野兽+狗羊", 328: "家禽+猴龙", 329: "家禽+蛇兔", 330: "野兽+猪羊", 331: "家禽+猴鼠", 332: "家禽+龙兔", 333: "野兽+鸡狗", 334: "野兽+马牛", 335: "家禽+虎兔", 336: "野兽+狗羊", 337: "野兽+马牛", 338: "家禽+虎龙", 339: "家禽+蛇猴", 340: "野兽+狗马", 341: "家禽+兔龙", 342: "家禽+虎蛇", 343: "野兽+羊马", 344: "家禽+鼠猴", 345: "野兽+狗牛", 346: "野兽+鸡猪", 347: "家禽+龙兔", 348: "家禽+鼠虎", 349: "野兽+鸡牛", 350: "家禽+龙兔", 351: "野兽+狗马", 352: "野兽+羊猪", 353: "家禽+龙鼠", 354: "野兽+牛鸡", 355: "家禽+虎蛇", 356: "家禽+龙兔", 357: "野兽+狗鸡", 358: "家禽+虎猴", 359: "野兽+猪羊", 360: "野兽+牛马", 361: "家禽+鼠龙", 362: "野兽+猪鸡", 363: "家禽+蛇猴", 364: "家禽+龙虎", 365: "野兽+牛羊", 366: "家禽+兔猴"
+    };
+
+    function fetchJSONP(url) {
+        return fetch(url)
+            .then(res => res.text())
+            .then(text => {
+                const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+                if (match && match[1]) return JSON.parse(match[1]);
+                throw new Error(" ");
+            });
+    }
+
+    function getPredictDanShuangForKy(kyNum) {
+        if (STATIC_PREDICTIONS[kyNum]) {
+            return STATIC_PREDICTIONS[kyNum];
+        }
+        let cycle = Math.floor((kyNum - 1) / 2);
+        return cycle % 2 === 0 ? "野兽+马鸡" : "家禽+鼠虎";
+    }
+
+    function getDanShuangByNum(numStr, animal) {
+        if (JIA_QIN.includes(animal)) return "家禽";
+        if (YE_SHOU.includes(animal)) return "野兽";
+        return "";
+    }
+
+    function formatTwoDigits(val) {
+        let num = parseInt(String(val).replace(/\D/g, ''), 10);
+        if (isNaN(num)) return '';
+        return String(num).padStart(2, '0');
+    }
+
+    function formatThreeDigits(val) {
+        let num = parseInt(String(val).replace(/\D/g, ''), 10);
+        if (isNaN(num)) return '001';
+        return String(num).padStart(3, '0');
+    }
+
+    function checkWin(predicted, animal) {
+        if (!animal) return false;
+        let parts = predicted.split('+');
+        let mainCat = parts[0];
+        let subZodiacs = parts[1] || '';
+        
+        let actualCat = getDanShuangByNum('', animal);
+        if (subZodiacs.includes(animal)) return true;
+        if (mainCat === actualCat) return true;
+        return false;
+    }
+
+    function renderPredictedHtml(predicted, animal, isWin) {
+        let parts = predicted.split('+');
+        let mainCat = parts[0];
+        let subZodiacs = parts[1] || '';
+        let actualCat = getDanShuangByNum('', animal);
+
+        let mainCatHtml = mainCat;
+        let subZodiacsHtml = subZodiacs;
+
+        if (isWin) {
+            let hitSubZodiac = subZodiacs && subZodiacs.includes(animal);
+
+            if (hitSubZodiac) {
+                let z1 = subZodiacs.charAt(0);
+                let z2 = subZodiacs.charAt(1);
+                let z1Html = (z1 === animal) ? `<span class="win-animal">${z1}</span>` : z1;
+                let z2Html = (z2 === animal) ? `<span class="win-animal">${z2}</span>` : z2;
+                subZodiacsHtml = z1Html + z2Html;
+            } else if (mainCat === actualCat) {
+                mainCatHtml = `<span class="win-animal">${mainCat}</span>`;
+            }
+        }
+
+        return `${mainCatHtml}+${subZodiacsHtml}`;
+    }
+
+    async function initPredict() {
+        try {
+            const rawRules = await fetchJSONP(URL_DULIEU);
+            if (rawRules.table && rawRules.table.rows) {
+                rawRules.table.rows.forEach(r => {
+                    if (r.c && r.c[0] && r.c[0].v !== null && r.c[0].v !== undefined) {
+                        let formattedNum = formatTwoDigits(r.c[0].v);
+                        let animal = (r.c[1] && r.c[1].v !== null && r.c[1].v !== undefined) ? String(r.c[1].v).trim() : '';
+                        if (formattedNum && animal) {
+                            duLieuMap[formattedNum] = animal;
+                        }
+                    }
+                });
+            }
+
+            const rawKQ = await fetchJSONP(URL_KQ);
+            const rows = rawKQ.table.rows;
+            let parsedList = [];
+
+            if (rows) {
+                for (let i = 0; i < rows.length; i++) {
+                    const r = rows[i].c;
+                    if (!r || !r[0] || r[0].v === null || r[0].v === undefined) continue;
+                    
+                    let kyRaw = String(r[0].v).trim();
+                    let kyOnlyNum = parseInt(kyRaw.replace(/\D/g, ''), 10) || 0;
+                    
+                    let numTeFormatted = '';
+                    if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '') {
+                        numTeFormatted = formatTwoDigits(r[7].v);
+                    }
+
+                    if (kyOnlyNum > 0) {
+                        parsedList.push({
+                            kyNum: kyOnlyNum,
+                            numTe: numTeFormatted
+                        });
+                    }
+                }
+            }
+
+            let doneList = [];
+            let pendingKyObj = null;
+
+            for (let i = 0; i < parsedList.length; i++) {
+                let item = parsedList[i];
+                let isNotDone = item.numTe === '' || item.numTe === '0' || item.numTe === '00';
+                if (!isNotDone) {
+                    doneList.push(item);
+                } else {
+                    pendingKyObj = item;
+                }
+            }
+
+            let targetPredictKy = 1;
+            if (pendingKyObj) {
+                targetPredictKy = pendingKyObj.kyNum;
+            } else if (doneList.length > 0) {
+                targetPredictKy = doneList[doneList.length - 1].kyNum + 1;
+            }
+
+            let evaluatedDoneList = [];
+            for (let i = 0; i < doneList.length; i++) {
+                let item = doneList[i];
+                let predicted = getPredictDanShuangForKy(item.kyNum);
+                let animal = duLieuMap[item.numTe] || '';
+                let isValidNum = duLieuMap.hasOwnProperty(item.numTe);
+                let isWin = isValidNum && checkWin(predicted, animal);
+                evaluatedDoneList.push({ item, isWin });
+            }
+
+            let checkLatestMisses = 0;
+            for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                if (!evaluatedDoneList[i].isWin) {
+                    checkLatestMisses++;
+                } else {
+                    break;
+                }
+            }
+
+            let cutoffIndex = 0;
+            if (checkLatestMisses < 3) {
+                let consecutiveMisses = 0;
+                for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
+                    if (!evaluatedDoneList[i].isWin) {
+                        consecutiveMisses++;
+                        if (consecutiveMisses >= 3) {
+                            cutoffIndex = i + 1;
+                            break;
+                        }
+                    } else {
+                        consecutiveMisses = 0;
+                    }
+                }
+            } else {
+                cutoffIndex = evaluatedDoneList.length;
+            }
+
+            let nextKyNum = targetPredictKy;
+            let predictNext = getPredictDanShuangForKy(nextKyNum);
+            let kyStrNext = formatThreeDigits(nextKyNum);
+
+            let htmlNextKy = `<p style="font-family:-apple-system-font,sans-serif;font-size:16px;"><span style="color:#333333;">${kyStrNext}期:</span><span style="color:rgb(255,0,255);">|家野中特|</span><span style="color:rgb(0,128,0);">【${predictNext}</span><span style="color:rgb(0,153,0);">】━开:</span><span style="color:#ff0000;">？00准</span></p>`;
+
+            let historyOutputs = [];
+            if (checkLatestMisses < 3) {
+                for (let i = cutoffIndex; i < evaluatedDoneList.length; i++) {
+                    let evalItem = evaluatedDoneList[i];
+                    let item = evalItem.item;
+                    let predicted = getPredictDanShuangForKy(item.kyNum);
+                    let shengXiaoWin = duLieuMap[item.numTe] || '';
+                    let animal = shengXiaoWin;
+
+                    if (evalItem.isWin) {
+                        let resStrWin = shengXiaoWin + item.numTe + '准';
+                        let kyStr = formatThreeDigits(item.kyNum);
+                        let formattedPredictHtml = renderPredictedHtml(predicted, animal, evalItem.isWin);
+                        historyOutputs.push(`<p style="font-family:-apple-system-font,sans-serif;font-size:16px;"><span style="color:#333333;">${kyStr}期:</span><span style="color:rgb(255,0,255);">|家野中特|</span><span style="color:rgb(0,128,0);">【${formattedPredictHtml}</span><span style="color:rgb(0,153,0);">】━开:</span><span style="color:#ff0000;">${resStrWin}</span></p>`);
+                    }
+                }
+            }
+            historyOutputs.reverse();
+
+            let finalOutputs = [htmlNextKy, ...historyOutputs];
+
+            let currentCount = finalOutputs.length;
+            if (currentCount === 1) {
+                let kyStr1 = formatThreeDigits(nextKyNum + 1);
+                let kyStr2 = formatThreeDigits(nextKyNum + 2);
+                let defaultHtml1 = `<p style="font-family:-apple-system-font,sans-serif;font-size:16px;"><span style="color:#333333;">${kyStr1}期:</span><span style="color:rgb(255,0,255);">|家野中特|</span><span style="color:rgb(0,128,0);">【<span style="color:rgb(0,128,0);">發發+發發</span></span><span style="color:rgb(0,153,0);">】━开:</span><span style="color:#ff0000;">？00准</span></p>`;
+                let defaultHtml2 = `<p style="font-family:-apple-system-font,sans-serif;font-size:16px;"><span style="color:#333333;">${kyStr2}期:</span><span style="color:rgb(255,0,255);">|家野中特|</span><span style="color:rgb(0,128,0);">【<span style="color:rgb(0,128,0);">發發+發發</span></span><span style="color:rgb(0,153,0);">】━开:</span><span style="color:#ff0000;">？00准</span></p>`;
+                finalOutputs.unshift(defaultHtml1);
+                finalOutputs.unshift(defaultHtml2);
+            } else if (currentCount === 2) {
+                let kyStrExtra = formatThreeDigits(nextKyNum + 1);
+                let defaultHtmlExtra = `<p style="font-family:-apple-system-font,sans-serif;font-size:16px;"><span style="color:#333333;">${kyStrExtra}期:</span><span style="color:rgb(255,0,255);">|家野中特|</span><span style="color:rgb(0,128,0);">【<span style="color:rgb(0,128,0);">發發+發發</span></span><span style="color:rgb(0,153,0);">】━开:</span><span style="color:#ff0000;">？00准</span></p>`;
+                finalOutputs.unshift(defaultHtmlExtra);
+            }
+
+            document.getElementById('content-container').innerHTML = finalOutputs.join('');
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('content-container').innerHTML = ' ';
+        }
+    }
+    initPredict();
+</script>
+
+</body>
+</html>
