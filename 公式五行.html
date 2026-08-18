@@ -120,6 +120,13 @@
         return String(num).padStart(2, '0');
     }
 
+    // Hàm định dạng số kỳ luôn là 3 chữ số (ví dụ: 1 -> 001, 01 -> 001)
+    function formatThreeDigits(val) {
+        let num = parseInt(String(val).replace(/\D/g, ''), 10);
+        if (isNaN(num)) return '001';
+        return String(num).padStart(3, '0');
+    }
+
     async function initPredict() {
         try {
             const rawRules = await fetchJSONP(URL_DULIEU);
@@ -138,7 +145,6 @@
             const rawKQ = await fetchJSONP(URL_KQ);
             const rows = rawKQ.table.rows;
             let parsedList = [];
-            let maxKyNum = 0;
 
             if (rows) {
                 for (let i = 0; i < rows.length; i++) {
@@ -149,7 +155,7 @@
                     let kyOnlyNum = parseInt(kyRaw.replace(/\D/g, ''), 10) || 0;
                     
                     let numTeFormatted = '';
-                    if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '' && String(r[7].v).trim() !== '00') {
+                    if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '') {
                         numTeFormatted = formatTwoDigits(r[7].v);
                     }
 
@@ -158,24 +164,27 @@
                             kyNum: kyOnlyNum,
                             numTe: numTeFormatted
                         });
-                        if (kyOnlyNum > maxKyNum) {
-                            maxKyNum = kyOnlyNum;
-                        }
                     }
                 }
             }
 
             let doneList = [];
-            let limitRange = Math.min(parsedList.length, 365);
-            let startIndex = parsedList.length - limitRange;
+            let pendingKyObj = null;
 
-            for (let i = startIndex; i < parsedList.length; i++) {
+            // Đọc từ trên xuống dưới theo thứ tự trong Sheet
+            for (let i = 0; i < parsedList.length; i++) {
                 let item = parsedList[i];
                 let isDone = item.numTe !== '' && item.numTe !== '00';
                 if (isDone) {
                     doneList.push(item);
+                } else {
+                    // Lấy hàng có kết quả bằng 00 hoặc rỗng ở dưới cùng làm kỳ dự đoán
+                    pendingKyObj = item;
                 }
             }
+
+            // Kỳ dự đoán được chọn từ hàng có kết quả 00 dưới cùng
+            let targetPredictKy = pendingKyObj ? pendingKyObj.kyNum : (doneList.length > 0 ? doneList[doneList.length - 1].kyNum + 1 : 1);
 
             let evaluatedDoneList = [];
             for (let i = 0; i < doneList.length; i++) {
@@ -211,9 +220,9 @@
                 }
             }
 
-            let nextKyNum = maxKyNum + 1;
+            let nextKyNum = targetPredictKy;
             let predictNext = getPredictWuXingForKy(nextKyNum);
-            let kyStrNext = String(nextKyNum).padStart(3, '0');
+            let kyStrNext = formatThreeDigits(nextKyNum);
 
             let htmlNextKy = `<p>\n\t<span style="font-size: 18px;">${kyStrNext}期：公式五行【<span style="color: rgb(255, 0, 0);">${predictNext}</span>】开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">？00</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span>\n</p>`;
 
@@ -228,7 +237,7 @@
 
                     if (isWin) {
                         let resStrWin = shengXiaoWin + item.numTe;
-                        let kyStr = String(item.kyNum).padStart(3, '0');
+                        let kyStr = formatThreeDigits(item.kyNum);
                         
                         let formattedPredict = "";
                         for (let char of predicted) {
@@ -249,14 +258,14 @@
 
             let currentCount = finalOutputs.length;
             if (currentCount === 1) {
-                let kyStr1 = String(nextKyNum + 1).padStart(3, '0');
-                let kyStr2 = String(nextKyNum + 2).padStart(3, '0');
+                let kyStr1 = formatThreeDigits(nextKyNum + 1);
+                let kyStr2 = formatThreeDigits(nextKyNum + 2);
                 let defaultHtml1 = `<p>\n\t<span style="font-size: 18px;">${kyStr1}期：公式五行【<span style="color: rgb(255, 0, 0);">發發發</span>】开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">？00</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span>\n</p>`;
                 let defaultHtml2 = `<p>\n\t<span style="font-size: 18px;">${kyStr2}期：公式五行【<span style="color: rgb(255, 0, 0);">發發發</span>】开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">？00</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span>\n</p>`;
                 finalOutputs.unshift(defaultHtml1);
                 finalOutputs.unshift(defaultHtml2);
             } else if (currentCount === 2) {
-                let kyStrExtra = String(nextKyNum + 1).padStart(3, '0');
+                let kyStrExtra = formatThreeDigits(nextKyNum + 1);
                 let defaultHtmlExtra = `<p>\n\t<span style="font-size: 18px;">${kyStrExtra}期：公式五行【<span style="color: rgb(255, 0, 0);">發發發</span>】开：</span><span style="font-size: 18px; color: rgb(255, 0, 0);">？00</span><span style="font-size: 18px; color: rgb(0, 0, 0);">准</span>\n</p>`;
                 finalOutputs.unshift(defaultHtmlExtra);
             }
