@@ -30,8 +30,8 @@
     const SHEET_NAME_KQ = 'KQ_AOMEN';
     const SHEET_NAME_DULIEU = 'DULIEU';
 
-    const URL_KQ = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_KQ}`;
-    const URL_DULIEU = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_DULIEU}`;
+    const URL_KQ = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_KQ}&_=${Date.now()}`;
+    const URL_DULIEU = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME_DULIEU}&_=${Date.now()}`;
 
     let duLieuMap = {};
 
@@ -108,6 +108,12 @@
         return String(num).padStart(2, '0');
     }
 
+    function formatThreeDigits(val) {
+        let num = parseInt(String(val).replace(/\D/g, ''), 10);
+        if (isNaN(num)) return '001';
+        return String(num).padStart(3, '0');
+    }
+
     async function initPredict() {
         try {
             const rawRules = await fetchJSONP(URL_DULIEU);
@@ -126,7 +132,6 @@
             const rawKQ = await fetchJSONP(URL_KQ);
             const rows = rawKQ.table.rows;
             let parsedList = [];
-            let maxKyNum = 0;
 
             if (rows) {
                 for (let i = 0; i < rows.length; i++) {
@@ -137,7 +142,7 @@
                     let kyOnlyNum = parseInt(kyRaw.replace(/\D/g, ''), 10) || 0;
                     
                     let numTeFormatted = '';
-                    if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '' && String(r[7].v).trim() !== '00') {
+                    if (r[7] && r[7].v !== null && r[7].v !== undefined && String(r[7].v).trim() !== '') {
                         numTeFormatted = formatTwoDigits(r[7].v);
                     }
 
@@ -146,25 +151,32 @@
                             kyNum: kyOnlyNum,
                             numTe: numTeFormatted
                         });
-                        if (kyOnlyNum > maxKyNum) {
-                            maxKyNum = kyOnlyNum;
-                        }
                     }
                 }
             }
 
             let doneList = [];
-            let limitRange = Math.min(parsedList.length, 365);
-            let startIndex = parsedList.length - limitRange;
+            let pendingKyObj = null;
 
-            for (let i = startIndex; i < parsedList.length; i++) {
+            for (let i = 0; i < parsedList.length; i++) {
                 let item = parsedList[i];
-                let isDone = item.numTe !== '' && item.numTe !== '00';
-                if (isDone) {
+                let isNotDone = item.numTe === '' || item.numTe === '0' || item.numTe === '00';
+                if (!isNotDone) {
                     doneList.push(item);
+                } else {
+                    pendingKyObj = item;
                 }
             }
 
+            // Logic xác định kỳ cần dự đoán
+            let targetPredictKy = 1;
+            if (pendingKyObj) {
+                targetPredictKy = pendingKyObj.kyNum;
+            } else if (doneList.length > 0) {
+                targetPredictKy = doneList[doneList.length - 1].kyNum + 1;
+            }
+
+            // Đánh giá các kỳ đã có kết quả
             let evaluatedDoneList = [];
             for (let i = 0; i < doneList.length; i++) {
                 let item = doneList[i];
@@ -175,6 +187,7 @@
                 evaluatedDoneList.push({ item, isWin });
             }
 
+            // Kiểm tra chuỗi thua 3 kỳ liên tiếp gần nhất
             let checkLatestMisses = 0;
             for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
                 if (!evaluatedDoneList[i].isWin) {
@@ -184,7 +197,8 @@
                 }
             }
 
-            let cutoffIndex = evaluatedDoneList.length;
+            // Mốc cắt lịch sử
+            let cutoffIndex = 0;
             if (checkLatestMisses < 3) {
                 let consecutiveMisses = 0;
                 for (let i = evaluatedDoneList.length - 1; i >= 0; i--) {
@@ -198,27 +212,29 @@
                         consecutiveMisses = 0;
                     }
                 }
+            } else {
+                cutoffIndex = evaluatedDoneList.length;
             }
 
-            let nextKyNum = maxKyNum + 1;
+            // Chuỗi HTML cho kỳ dự đoán
+            let nextKyNum = targetPredictKy;
             let predictNext = getPredictDanShuangForKy(nextKyNum);
-            let kyStrNext = String(nextKyNum).padStart(3, '0');
+            let kyStrNext = formatThreeDigits(nextKyNum);
 
             let htmlNextKy = `<p style="line-height:32px;font-weight:bold;"><span style="color:#333333;">${kyStrNext}期:【合数卍中特】《</span><span style="color:#FF0000;">${predictNext}</span><span style="color:#333333;">》开:</span><span style="color:#ff0000;">？00准</span></p>`;
 
+            // Lịch sử kỳ trúng
             let historyOutputs = [];
             if (checkLatestMisses < 3) {
-                for (let i = cutoffIndex; i < doneList.length; i++) {
-                    let item = doneList[i];
+                for (let i = cutoffIndex; i < evaluatedDoneList.length; i++) {
+                    let evalItem = evaluatedDoneList[i];
+                    let item = evalItem.item;
                     let predicted = getPredictDanShuangForKy(item.kyNum);
                     let shengXiaoWin = duLieuMap[item.numTe] || '';
-                    let actual = getDanShuangByNum(item.numTe);
-                    let isValidNum = (HE_DAN.includes(item.numTe) || HE_SHUANG.includes(item.numTe));
-                    let isWin = isValidNum && actual && (predicted === actual);
 
-                    if (isWin) {
+                    if (evalItem.isWin) {
                         let resStrWin = shengXiaoWin + item.numTe + '准';
-                        let kyStr = String(item.kyNum).padStart(3, '0');
+                        let kyStr = formatThreeDigits(item.kyNum);
                         let formattedPredictHtml = `<span style="color:#FF0000; background-color:yellow;">${predicted}</span>`;
                         historyOutputs.push(`<p style="line-height:32px;font-weight:bold;"><span style="color:#333333;">${kyStr}期:【合数卍中特】《</span>${formattedPredictHtml}<span style="color:#333333;">》开:</span><span style="color:#ff0000;">${resStrWin}</span></p>`);
                     }
@@ -228,16 +244,17 @@
 
             let finalOutputs = [htmlNextKy, ...historyOutputs];
 
+            // Bù kỳ mặc định nếu ít hơn 3 dòng
             let currentCount = finalOutputs.length;
             if (currentCount === 1) {
-                let kyStr1 = String(nextKyNum + 1).padStart(3, '0');
-                let kyStr2 = String(nextKyNum + 2).padStart(3, '0');
+                let kyStr1 = formatThreeDigits(nextKyNum + 1);
+                let kyStr2 = formatThreeDigits(nextKyNum + 2);
                 let defaultHtml1 = `<p style="line-height:32px;font-weight:bold;"><span style="color:#333333;">${kyStr1}期:【合数卍中特】《</span><span style="color:#FF0000;">發發</span><span style="color:#333333;">》开:</span><span style="color:#ff0000;">？00准</span></p>`;
                 let defaultHtml2 = `<p style="line-height:32px;font-weight:bold;"><span style="color:#333333;">${kyStr2}期:【合数卍中特】《</span><span style="color:#FF0000;">發發</span><span style="color:#333333;">》开:</span><span style="color:#ff0000;">？00准</span></p>`;
                 finalOutputs.unshift(defaultHtml1);
                 finalOutputs.unshift(defaultHtml2);
             } else if (currentCount === 2) {
-                let kyStrExtra = String(nextKyNum + 1).padStart(3, '0');
+                let kyStrExtra = formatThreeDigits(nextKyNum + 1);
                 let defaultHtmlExtra = `<p style="line-height:32px;font-weight:bold;"><span style="color:#333333;">${kyStrExtra}期:【合数卍中特】《</span><span style="color:#FF0000;">發發</span><span style="color:#333333;">》开:</span><span style="color:#ff0000;">？00准</span></p>`;
                 finalOutputs.unshift(defaultHtmlExtra);
             }
